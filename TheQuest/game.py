@@ -1,5 +1,5 @@
 import pygame as pg
-from TheQuest.scenes import Play, Intro, History
+from TheQuest.scenes import Play, Intro, History, Records
 
 pg.init()
 
@@ -10,7 +10,8 @@ class Game:
         game = Play(screen)
         intro = Intro(screen)
         history = History(screen)
-        self.scenes = [intro, history, game]
+        records = Records(screen)
+        self.scenes = [game]
 
 
     def deploy(self):
