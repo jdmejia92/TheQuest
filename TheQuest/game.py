@@ -7,11 +7,11 @@ class Game:
     def __init__(self, ancho=800, alto=600):
         screen = pg.display.set_mode((ancho, alto))
         pg.display.set_caption("The Quest")
-        game = Play(screen)
+        play = Play(screen)
         intro = Intro(screen)
         history = History(screen)
         records = Records(screen)
-        self.scenes = [game]
+        self.scenes = [play]
 
 
     def deploy(self):
