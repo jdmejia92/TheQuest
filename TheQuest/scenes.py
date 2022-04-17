@@ -177,7 +177,7 @@ class Play(Scene):
                     if pg.sprite.spritecollide(self.ship, self.meteors, True):
                         self.life_count -= 1
 
-                if len(self.meteors) <= 2:
+                if len(self.meteors) == 0:
                     self.world.arrive()
                     self.ship.arrive()
                 
@@ -216,10 +216,12 @@ class Play(Scene):
                             
 
                 if self.world.x_ini <= self.screen.get_width():
-                    self.ship.ship_rotate = True                   
+                    self.ship.ship_travel = False
+                    if self.ship.speedy == 0:
+                        self.ship.ship_rotate = True
 
                 self.all.update()
-                print(self.ship.rect.centery)
+                print(self.ship.angle)
                 self.world.update()             
 
                 life_text = self.font_count.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))

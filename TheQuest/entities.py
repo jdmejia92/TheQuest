@@ -1,3 +1,4 @@
+from doctest import ELLIPSIS_MARKER
 from email.mime import image
 from telnetlib import STATUS
 import pygame as pg
@@ -13,53 +14,48 @@ class ShipStatus(Enum):
 
 
 class Ship(pg.sprite.Sprite):
-    def __init__(self, screen, centrox, centroy):
+    def __init__(self, screen, cent_x, cent_y):
         super().__init__()
         self.screen = screen
         self.image = pg.image.load("resources/images/StarShip/StarShip.png")
-        self.rect = self.image.get_rect(centerx = centrox, centery = centroy)
-        self.speedy = 5
-        self.max_speed = 7
+        self.rect = self.image.get_rect(centerx = cent_x, centery = cent_y)
+        self.ini_speedy = 5
+        self.speedy = self.ini_speedy
+        self.max_speed = 5
         self.ship_travel = True
         self.ship_rotate = False
         self.rotate_time = 0
         self.current_time = 0
-        self.angel = 0
+        self.angle = 0
 
     def update(self):
-        if self.ship_rotate == True:
+        if self.ship_travel == False:
             if self.rect.centery >= self.screen.get_height()//2:
                 self.rect.centery -= self.speedy
-                if self.rect.centery == self.screen.get_height()//2:
+                if self.rect.centery <= self.screen.get_height()//2:
                     self.speedy = 0
             elif self.rect.centery <= self.screen.get_height()//2:
                 self.rect.centery += self.speedy
-                if self.rect.centery == self.screen.get_height()//2:
+                if self.rect.centery >= self.screen.get_height()//2:
                     self.speedy = 0
-            else:
-                self.speedy = 0
-      
 
-            """self.rect.y = self.screen.get_height()//2
-            self.angel = 0
-            if self.angel >= 180:
-                self.image = pg.transform.rotate(self.image, self.angel)
-            
-            self.angel += 1"""
-            
-        else:
-
-            """if self.rotate_time == 0:
+        """if self.ship_rotate == True:
+            print(self.angle)
+            if self.angle == 0:
                 self.image = self.image
-                self.centro = self.rect.center
-            elif self.rotate_time <= 1000:
-                if self.rotate_time % 100 == 0:
-                    self.image = pg.transform.rotate(self.image, (18 * self.rotate_time // 100))
-                    self.rect = self.image.get_rect(center = self.centro)
+                self.center = self.rect.center
+            elif self.angle <= 1000:
+                if self.angle % 100 == 0:
+                    self.image = pg.transform.rotate(self.image, 18 * self.angle//100)
+                    self.rect = self.image.get_rect(center=self.center)
             else:
-                self.ship_rotate = False
-                self.rotate_time = -1"""
-        
+                self.ship_rotate == False
+                self.image = self.image
+                self.angle = -1
+
+            self.angle += 1"""
+            
+        if self.ship_travel == True:
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
                 self.rect.y -= self.speedy
@@ -83,6 +79,7 @@ class Ship(pg.sprite.Sprite):
     def reset(self):
         self.ship_travel = True
         self.ship_rotate = False
+        self.speedy = self.ini_speedy
         
         
 class Meteor(pg.sprite.Sprite):
@@ -116,7 +113,8 @@ class World(pg.sprite.Sprite):
         pg.draw.circle(self.image, white, (self.x_ini, self.y_ini), self.radio)
         self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
         
-        self.vx = 1
+        self.ini_vx = 4
+        self.vx = self.ini_vx
         self.status_arrive = False      
 
     def arrive(self):
@@ -133,7 +131,7 @@ class World(pg.sprite.Sprite):
 
     def reset(self):
         self.x_ini = self.centrox
-        self.vx = 1
+        self.vx = self.ini_vx
 
 
     
