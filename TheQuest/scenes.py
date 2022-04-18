@@ -128,12 +128,15 @@ class Play(Scene):
 
     def background_change(self, dt):
         self.current_time += dt
-        if self.current_time > self.animation_time:
-            self.current_time = 0
-            self.active_background += 1
-            if self.active_background >= len(self.backgrounds):
-                self.active_background = 0
-            
+        if self.ship.ship_travel == True:
+            if self.current_time > self.animation_time:
+                self.current_time = 0
+                self.active_background += 1
+                if self.active_background >= len(self.backgrounds):
+                    self.active_background = 0
+                
+                self.background = self.backgrounds[self.active_background]
+        else:
             self.background = self.backgrounds[self.active_background]
 
     def reset(self):
@@ -153,10 +156,10 @@ class Play(Scene):
         level = 0
         self.reset()
                 
-        while self.life_count > 0 and level < len(levels) and self.world.status_arrive == False:
+        while self.life_count > 0 and level < len(levels):
             self.create_meteors(level)
 
-            while self.life_count > 0 and len(self.meteors) > 0 and self.world.status_arrive == False:    
+            while self.life_count > 0 and len(self.meteors) > 0:    
 
                 self.clock.tick(FPS)
                 dt = pg.time.get_ticks()
@@ -179,9 +182,10 @@ class Play(Scene):
 
                 if len(self.meteors) == 0:
                     self.world.arrive()
-                    self.ship.arrive()
+                    self.ship.ship_travel = False
+                    self.world.status_arrive = True
                 
-                
+
                 life_text = self.font_count.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
                 level_text = self.font_count.render('Level: ' + str(level + 1), True, (255, 255, 255))
                 points = self.font_count.render('Points: ' + str(self.points), True, (255, 255, 255))
@@ -193,7 +197,7 @@ class Play(Scene):
                 
                 self.background_change(dt)
 
-                self.all.draw(self.screen)
+                self.all.draw(self.screen) 
 
                 pg.display.flip()
 
@@ -213,25 +217,23 @@ class Play(Scene):
                         self.meteors.remove(meteor)
                         self.all.remove(meteor)
                         self.points += 1
-                            
 
-                if self.world.x_ini <= self.screen.get_width():
-                    self.ship.ship_travel = False
-                    if self.ship.speedy == 0:
-                        self.ship.ship_rotate = True
+                """if self.world.x_ini == self.screen.get_width():
+                    self.ship.ship_travel = False"""
 
                 self.all.update()
-                print(self.ship.angle)
-                self.world.update()             
+                self.world.update()
+                     
 
                 life_text = self.font_count.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
                 level_text = self.font_count.render('Level: ' + str(level + 1), True, (255, 255, 255))
-                points = self.font_count.render('Points: ' + str(self.points), True, (255, 255, 255))
+                points = self.font_count.render('Points: ' + str(self.points), True, (255, 255, 255)) 
 
                 self.screen.blit(self.backgrounds[self.active_background], (0,0))
                 self.screen.blit(life_text, (self.screen.get_width() - 160, 10))
                 self.screen.blit(level_text, (self.screen.get_width() - 160, 30))
                 self.screen.blit(points, (self.screen.get_width() - 160, 50))
+
 
                 self.world.draw()   
                 self.all.draw(self.screen)

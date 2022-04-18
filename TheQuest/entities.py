@@ -17,45 +17,38 @@ class Ship(pg.sprite.Sprite):
     def __init__(self, screen, cent_x, cent_y):
         super().__init__()
         self.screen = screen
-        self.image = pg.image.load("resources/images/StarShip/StarShip.png")
+        self.image_ship = pg.image.load("resources/images/StarShip/StarShip.png")
+        self.image = self.image_ship
         self.rect = self.image.get_rect(centerx = cent_x, centery = cent_y)
         self.ini_speedy = 5
         self.speedy = self.ini_speedy
         self.max_speed = 5
+        self.arrive_speed = 2
         self.ship_travel = True
-        self.ship_rotate = False
-        self.rotate_time = 0
-        self.current_time = 0
+        self.rotation = 0
         self.angle = 0
 
     def update(self):
         if self.ship_travel == False:
             if self.rect.centery >= self.screen.get_height()//2:
-                self.rect.centery -= self.speedy
+                self.rect.centery -= self.arrive_speed
                 if self.rect.centery <= self.screen.get_height()//2:
-                    self.speedy = 0
+                    self.arrive_speed = 0
             elif self.rect.centery <= self.screen.get_height()//2:
-                self.rect.centery += self.speedy
+                self.rect.centery += self.arrive_speed
                 if self.rect.centery >= self.screen.get_height()//2:
-                    self.speedy = 0
-
-        """if self.ship_rotate == True:
-            print(self.angle)
-            if self.angle == 0:
-                self.image = self.image
-                self.center = self.rect.center
-            elif self.angle <= 1000:
-                if self.angle % 100 == 0:
-                    self.image = pg.transform.rotate(self.image, 18 * self.angle//100)
-                    self.rect = self.image.get_rect(center=self.center)
-            else:
-                self.ship_rotate == False
-                self.image = self.image
-                self.angle = -1
-
-            self.angle += 1"""
+                    self.arrive_speed = 0
             
-        if self.ship_travel == True:
+            if self.arrive_speed == 0:
+                if self.rotation <= 180:
+                    self.image = pg.transform.rotate(self.image_ship, self.angle)
+                    self.angle += 1 % 180
+                    self.rect = self.image.get_rect(center=self.rect.center)
+
+                self.rotation += 1
+        
+                   
+        if self.ship_travel == True:               
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
                 self.rect.y -= self.speedy
@@ -73,12 +66,8 @@ class Ship(pg.sprite.Sprite):
             if self.rect.bottom >= self.screen.get_height():
                 self.rect.bottom = self.screen.get_height()
 
-    def arrive(self):
-        self.ship_travel = False
-
     def reset(self):
         self.ship_travel = True
-        self.ship_rotate = False
         self.speedy = self.ini_speedy
         
         
@@ -113,7 +102,7 @@ class World(pg.sprite.Sprite):
         pg.draw.circle(self.image, white, (self.x_ini, self.y_ini), self.radio)
         self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
         
-        self.ini_vx = 4
+        self.ini_vx = 3
         self.vx = self.ini_vx
         self.status_arrive = False      
 
