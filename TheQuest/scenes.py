@@ -1,8 +1,10 @@
+from importlib import resources
 from pickle import FALSE
 from re import X
 import pygame as pg
 from TheQuest import FPS, levels
-from TheQuest.entities import Meteor, Ship, World
+from TheQuest.entities import Meteor, Ship, World, ShipStatus
+import os
 
 white = (255, 255, 255)
 
@@ -109,26 +111,41 @@ class History(Scene):
 class Play(Scene):
     def __init__(self, screen):
         super().__init__(screen)
-        self.font_count = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 15)
+        self.screen = screen
+        self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 13)
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
-        self.world = World(self.screen, (self.screen.get_width() + 300), self.screen.get_height()//2)
+        self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
         self.meteors = pg.sprite.Group()
         self.all = pg.sprite.Group()
         self.clock.tick(FPS)
         self.points = 0    
 
+        #Carga del fondo movible
         self.backgrounds = []
-        for i in range(169):
-            self.backgrounds.append(pg.image.load(f"./resources/images/Background/Espacio{i}.png"))  
         self.active_background = 0
-        self.animation_time = FPS * 500
-        self.background = self.backgrounds[self.active_background]
+        self.how_many = 0
+        self.animation_time = FPS
+
+        self.load_background()
 
         self.current_time = 0
 
+    def load_background(self):
+        space = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
+        for colum in range(1600):
+            x = colum + 1
+
+            image = pg.Surface((self.screen.get_width(), self.screen.get_height()), pg.SRCALPHA).convert_alpha()
+            image.blit(space, (0,0), (x, 0, self.screen.get_width(), self.screen.get_height()))
+
+            self.backgrounds.append(image)
+
+        self.how_many = len(self.backgrounds)
+        self.background = self.backgrounds[self.active_background]
+
     def background_change(self, dt):
         self.current_time += dt
-        if self.ship.ship_travel == True:
+        if self.ship.ship_status == ShipStatus.travel:
             if self.current_time > self.animation_time:
                 self.current_time = 0
                 self.active_background += 1
@@ -136,13 +153,14 @@ class Play(Scene):
                     self.active_background = 0
                 
                 self.background = self.backgrounds[self.active_background]
-        else:
+
+        elif self.ship.ship_status == ShipStatus.arrive:
             self.background = self.backgrounds[self.active_background]
 
     def reset(self):
         self.meteors.empty()
         self.all.empty()
-        self.all.add(self.ship)
+        self.all.add(self.world, self.ship)
         self.life_count = 3
         self.points = 0
 
@@ -151,6 +169,14 @@ class Play(Scene):
             m = Meteor(800 * col, 30 * fil)
             self.meteors.add(m)
         self.all.add(self.meteors)  
+
+    def counters(self, level):
+        life_text = self.font_counter.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
+        level_text = self.font_counter.render('Level: ' + str(level + 1), True, (255, 255, 255))
+        points = self.font_counter.render('Puntos: ' + str(self.points), True, (255, 255, 255))
+        self.screen.blit(life_text, (10, 10))
+        self.screen.blit(level_text, (10, 30))
+        self.screen.blit(points, (10, 50))
     
     def bucle_ppal(self) -> bool:
         level = 0
@@ -167,7 +193,9 @@ class Play(Scene):
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                         return False
-                
+
+                self.background_change(dt)
+
                 self.all.update()
 
                 for meteor in self.meteors:
@@ -176,28 +204,18 @@ class Play(Scene):
                         self.all.remove(meteor)
                         self.points += 1   
 
-                if self.ship.ship_travel == True:   
+                if self.ship.ship_status == ShipStatus.travel:   
                     if pg.sprite.spritecollide(self.ship, self.meteors, True):
                         self.life_count -= 1
 
                 if len(self.meteors) == 0:
-                    self.world.arrive()
-                    self.ship.ship_travel = False
                     self.world.status_arrive = True
-                
-
-                life_text = self.font_count.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
-                level_text = self.font_count.render('Level: ' + str(level + 1), True, (255, 255, 255))
-                points = self.font_count.render('Points: ' + str(self.points), True, (255, 255, 255))
 
                 self.screen.blit(self.background, (0,0))
-                self.screen.blit(life_text, (self.screen.get_width() - 160, 10))
-                self.screen.blit(level_text, (self.screen.get_width() - 160, 30))
-                self.screen.blit(points, (self.screen.get_width() - 160, 50))
-                
-                self.background_change(dt)
 
-                self.all.draw(self.screen) 
+                self.all.draw(self.screen)
+
+                self.counters(level)
 
                 pg.display.flip()
 
@@ -212,37 +230,27 @@ class Play(Scene):
                     if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                         self.world.status_arrive = False
 
-                for meteor in self.meteors:
-                    if meteor.pass_meteor():
-                        self.meteors.remove(meteor)
-                        self.all.remove(meteor)
-                        self.points += 1
-
-                """if self.world.x_ini == self.screen.get_width():
-                    self.ship.ship_travel = False"""
-
                 self.all.update()
-                self.world.update()
-                     
 
-                life_text = self.font_count.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
-                level_text = self.font_count.render('Level: ' + str(level + 1), True, (255, 255, 255))
-                points = self.font_count.render('Points: ' + str(self.points), True, (255, 255, 255)) 
+                if self.world.vx == 0:
+                    self.ship.ship_status = ShipStatus.arrive
+                    if self.ship.rotation == 181:
+                        self.ship.ship_status = ShipStatus.landing
 
-                self.screen.blit(self.backgrounds[self.active_background], (0,0))
-                self.screen.blit(life_text, (self.screen.get_width() - 160, 10))
-                self.screen.blit(level_text, (self.screen.get_width() - 160, 30))
-                self.screen.blit(points, (self.screen.get_width() - 160, 50))
+                self.background_change(dt)
 
+                self.screen.blit(self.background, (0,0))
 
-                self.world.draw()   
                 self.all.draw(self.screen)
+
+                self.counters(level)
 
                 pg.display.flip()
 
             level += 1
             self.world.reset()
             self.ship.reset()
+            self.reset()
 
         return True
 

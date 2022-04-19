@@ -3,6 +3,7 @@ from email.mime import image
 from telnetlib import STATUS
 import pygame as pg
 from enum import Enum
+import os
 
 white = (255, 255, 255)
 
@@ -11,25 +12,30 @@ class ShipStatus(Enum):
     arrive = 2
     lunch = 3
     explode = 4
+    landing = 5
 
 
 class Ship(pg.sprite.Sprite):
     def __init__(self, screen, cent_x, cent_y):
         super().__init__()
         self.screen = screen
+        self.cent_x = cent_x
         self.image_ship = pg.image.load("resources/images/StarShip/StarShip.png")
         self.image = self.image_ship
-        self.rect = self.image.get_rect(centerx = cent_x, centery = cent_y)
+        self.rect = self.image.get_rect(centerx = self.cent_x, centery = cent_y)
         self.ini_speedy = 5
         self.speedy = self.ini_speedy
         self.max_speed = 5
         self.arrive_speed = 2
-        self.ship_travel = True
         self.rotation = 0
         self.angle = 0
+        self.ship_status = ShipStatus.travel
 
     def update(self):
-        if self.ship_travel == False:
+        """if self.ship_status == ShipStatus.lunch:"""
+
+
+        if self.ship_status == ShipStatus.arrive:
             if self.rect.centery >= self.screen.get_height()//2:
                 self.rect.centery -= self.arrive_speed
                 if self.rect.centery <= self.screen.get_height()//2:
@@ -46,9 +52,15 @@ class Ship(pg.sprite.Sprite):
                     self.rect = self.image.get_rect(center=self.rect.center)
 
                 self.rotation += 1
-        
-                   
-        if self.ship_travel == True:               
+
+        elif self.ship_status == ShipStatus.landing:
+            if self.rotation >= 180 and self.rect.right < self.screen.get_width():
+                self.arrive_speed = 2
+                self.rect.centerx += self.arrive_speed
+                if self.rect.right >= self.screen.get_width():
+                    self.arrive_speed = 0
+                
+        elif self.ship_status == ShipStatus.travel:               
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
                 self.rect.y -= self.speedy
@@ -67,8 +79,14 @@ class Ship(pg.sprite.Sprite):
                 self.rect.bottom = self.screen.get_height()
 
     def reset(self):
-        self.ship_travel = True
+        self.ship_status = ShipStatus.travel
         self.speedy = self.ini_speedy
+        self.arrive_speed = 2
+        self.image = pg.transform.rotate(self.image_ship, 0)
+        self.rect.centerx = self.cent_x
+        self.angle = 0
+        self.rotation = 0
+
         
         
 class Meteor(pg.sprite.Sprite):
@@ -90,36 +108,26 @@ class Meteor(pg.sprite.Sprite):
         return False 
 
 class World(pg.sprite.Sprite):
-    def __init__(self, screen, centrox, centroy, radio = 200):
+    def __init__(self, screen, cent_x, cent_y):
         super().__init__()
-        self.radio = radio
         self.screen = screen
-        self.centrox = centrox
+        self.centrox = cent_x
         self.x_ini = self.centrox
-        self.y_ini = centroy
-
-        self.image = pg.Surface((radio * 2, radio * 2), pg.SRCALPHA)
-        pg.draw.circle(self.image, white, (self.x_ini, self.y_ini), self.radio)
-        self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
-        
-        self.ini_vx = 3
+        self.y_ini = cent_y
+        self.image = pg.image.load(os.path.join("resources/images/Arrive_World/New_World.png")).convert_alpha()
+        self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
+        self.ini_vx = 5
         self.vx = self.ini_vx
-        self.status_arrive = False      
-
-    def arrive(self):
-        self.status_arrive = True
-
-    def draw(self):
-        pg.draw.circle(self.screen, white, (self.x_ini, self.y_ini), self.radio)
+        self.status_arrive = False
 
     def update(self):
         if self.status_arrive == True:
-            self.x_ini -= self.vx
-            if self.x_ini <= self.screen.get_width():
+            self.rect.centerx -= self.vx
+            if self.rect.centerx <= self.screen.get_width() + 450:
                 self.vx = 0
 
     def reset(self):
-        self.x_ini = self.centrox
+        self.rect.centerx = self.centrox
         self.vx = self.ini_vx
 
 
