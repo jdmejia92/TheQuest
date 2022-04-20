@@ -11,7 +11,24 @@ white = (255, 255, 255)
 class Scene:
     def __init__(self, screen):
         self.screen = screen
+        self.font_press = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 20)
         self.clock = pg.time.Clock()
+        self.delay = 1200
+        self.current_time = pg.time.get_ticks()
+        self.change_time = self.current_time + self.delay
+        self.show = True
+
+    #Texto que parpadee
+    def press_continue(self, texto):
+        if self.current_time >= self.change_time:
+                self.change_time = self.current_time + self.delay
+                self.show = not self.show
+
+        if self.show:
+            press_continue = self.font_press.render(f"{texto}", True, white)
+            rectexto_press = press_continue.get_rect()
+            self.screen.blit(press_continue, ((self.screen.get_width() - rectexto_press.width)//2,
+                                            (self.screen.get_height() - rectexto_press.h) - 30))
 
     def bucle_ppal(self) -> bool:
         return
@@ -19,15 +36,9 @@ class Scene:
 class Intro(Scene):
     def __init__(self, screen):
         super().__init__(screen)
-        self.screen = screen
         self.cover = pg.image.load("./resources/images/Intro/Earth_red.jpg")
         self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
-        self.font_press = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 20)
-        self.delay = 1200
-        self.current_time = pg.time.get_ticks()
-        self.change_time = self.current_time + self.delay
-        self.show = True
-
+        
        
     def bucle_ppal(self):
         while True:
@@ -49,30 +60,14 @@ class Intro(Scene):
             self.screen.blit(title, ((self.screen.get_width() - rectexto.width)//2,
                                              (self.screen.get_height() - rectexto.h)//2))
 
-            if self.current_time >= self.change_time:
-                self.change_time = self.current_time + self.delay
-                self.show = not self.show
-
-            if self.show:
-                press_continue = self.font_press.render("Presiona ESPACIO para iniciar", True, white)
-                rectexto_press = press_continue.get_rect()
-                self.screen.blit(press_continue, ((self.screen.get_width() - rectexto_press.width)//2,
-                                             (self.screen.get_height() - rectexto_press.h) - 30))
-            
+            self.press_continue("Presiona ESPACIO para iniciar")
             
             pg.display.flip()
-
-
 
 class History(Scene):
     def __init__(self, screen):
         super().__init__(screen)
         self.historia = pg.image.load("./resources/images/Intro/Earth_red.jpg")
-        self.font_press = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 20)
-        self.delay = 1200
-        self.current_time = pg.time.get_ticks()
-        self.change_time = self.current_time + self.delay
-        self.show = True
 
     def bucle_ppal(self) -> bool:
         while True:
@@ -95,15 +90,7 @@ class History(Scene):
 
             self.screen.blit(self.historia, (0, 0))
 
-            if self.current_time >= self.change_time:
-                self.change_time = self.current_time + self.delay
-                self.show = not self.show
-
-            if self.show:
-                press_continue = self.font_press.render("Presiona ESPACIO para iniciar", True, white)
-                rectexto_press = press_continue.get_rect()
-                self.screen.blit(press_continue, ((self.screen.get_width() - rectexto_press.width)//2,
-                                             (self.screen.get_height() - rectexto_press.h) - 30))
+            self.press_continue("Presione ESPACIO para continuar")
 
             pg.display.flip()
 
@@ -111,7 +98,6 @@ class History(Scene):
 class Play(Scene):
     def __init__(self, screen):
         super().__init__(screen)
-        self.screen = screen
         self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 13)
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
         self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
@@ -120,7 +106,7 @@ class Play(Scene):
         self.clock.tick(FPS)
         self.points = 0    
 
-        #Carga del fondo movible
+        #Fondo cargado
         self.backgrounds = []
         self.active_background = 0
         self.how_many = 0
@@ -130,6 +116,7 @@ class Play(Scene):
 
         self.current_time = 0
 
+    #Carga del fondo movible
     def load_background(self):
         space = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
         for colum in range(1600):
@@ -143,6 +130,7 @@ class Play(Scene):
         self.how_many = len(self.backgrounds)
         self.background = self.backgrounds[self.active_background]
 
+    #Moviemiento del fongo
     def background_change(self, dt):
         self.current_time += dt
         if self.ship.ship_status == ShipStatus.travel:
@@ -154,9 +142,7 @@ class Play(Scene):
                 
                 self.background = self.backgrounds[self.active_background]
 
-        elif self.ship.ship_status == ShipStatus.arrive:
-            self.background = self.backgrounds[self.active_background]
-
+    #Reinicio al pasar de nivel
     def reset(self):
         self.meteors.empty()
         self.all.empty()
@@ -164,37 +150,39 @@ class Play(Scene):
         self.life_count = 3
         self.points = 0
 
+    #Creacion de meteoros
     def create_meteors(self, level):
         for col, fil in levels[level]:
             m = Meteor(800 * col, 30 * fil)
             self.meteors.add(m)
         self.all.add(self.meteors)  
 
+    #Contadores en pantalla
     def counters(self, level):
         life_text = self.font_counter.render('Contador de vidas: ' + str(self.life_count), True, (255, 255, 255))
         level_text = self.font_counter.render('Level: ' + str(level + 1), True, (255, 255, 255))
         points = self.font_counter.render('Puntos: ' + str(self.points), True, (255, 255, 255))
         self.screen.blit(life_text, (10, 10))
-        self.screen.blit(level_text, (10, 30))
-        self.screen.blit(points, (10, 50))
+        self.screen.blit(level_text, (10, 25))
+        self.screen.blit(points, (10, 40))
     
+    #Juego
     def bucle_ppal(self) -> bool:
         level = 0
         self.reset()
                 
         while self.life_count > 0 and level < len(levels):
             self.create_meteors(level)
-
-            while self.life_count > 0 and len(self.meteors) > 0:    
-
+            
+            while self.life_count > 0 and len(self.meteors) > 0:
                 self.clock.tick(FPS)
-                dt = pg.time.get_ticks()
+                self.current_time = pg.time.get_ticks()
                    
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                         return False
 
-                self.background_change(dt)
+                self.background_change(self.current_time)
 
                 self.all.update()
 
@@ -203,14 +191,13 @@ class Play(Scene):
                         self.meteors.remove(meteor)
                         self.all.remove(meteor)
                         self.points += 1   
+                        if len(self.meteors) == 0:
+                            self.world.status_arrive = True
 
                 if self.ship.ship_status == ShipStatus.travel:   
                     if pg.sprite.spritecollide(self.ship, self.meteors, True):
                         self.life_count -= 1
-
-                if len(self.meteors) == 0:
-                    self.world.status_arrive = True
-
+                             
                 self.screen.blit(self.background, (0,0))
 
                 self.all.draw(self.screen)
@@ -219,9 +206,10 @@ class Play(Scene):
 
                 pg.display.flip()
 
+            #Bucle cuando llega al mundo
             while self.world.status_arrive == True:
                 self.clock.tick(FPS)
-                dt = pg.time.get_ticks()
+                self.current_time = pg.time.get_ticks()
 
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
@@ -232,12 +220,14 @@ class Play(Scene):
 
                 self.all.update()
 
-                if self.world.vx == 0:
+                if self.world.rect.centerx <= self.screen.get_width() + 450:
                     self.ship.ship_status = ShipStatus.arrive
                     if self.ship.rotation == 181:
                         self.ship.ship_status = ShipStatus.landing
 
-                self.background_change(dt)
+                print(self.ship.ship_status)
+
+                self.background_change(self.current_time)
 
                 self.screen.blit(self.background, (0,0))
 
@@ -245,11 +235,14 @@ class Play(Scene):
 
                 self.counters(level)
 
+                if self.ship.rect.right >= self.screen.get_width():
+                    self.press_continue("Presione ESPACIO para continuar")
+
                 pg.display.flip()
 
             level += 1
-            self.world.reset()
             self.ship.reset()
+            self.world.reset()
             self.reset()
 
         return True
