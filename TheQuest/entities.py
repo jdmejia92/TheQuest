@@ -1,7 +1,3 @@
-from doctest import ELLIPSIS_MARKER
-from email.mime import image
-from multiprocessing import set_forkserver_preload
-from telnetlib import STATUS
 import pygame as pg
 from enum import Enum
 import os
@@ -25,6 +21,7 @@ class Ship(pg.sprite.Sprite):
         self.image_ship = pg.image.load("resources/images/StarShip/StarShip.png")
         self.image = self.image_ship
         self.rect = self.image.get_rect(centerx = self.cent_x, centery = self.cent_y)
+        self.rect_image = self.rect
         self.ini_speedy = 5
         self.speedy = self.ini_speedy
         self.max_speed = 5
@@ -68,7 +65,7 @@ class Ship(pg.sprite.Sprite):
 
             if self.rect.centerx >= self.screen.get_width() - 700:
                 if self.rect.centerx % 10 == 0:
-                    if self.landing <= 50:
+                    if self.landing <= 55:
                         self.image = pg.transform.scale(self.image_rotate, (self.width, self.height))
                         self.rect = self.image.get_rect(center=self.rect.center)
                         self.width -= 2.5
@@ -100,7 +97,7 @@ class Ship(pg.sprite.Sprite):
         self.speedy = self.ini_speedy
         self.arrive_speed = 2
         self.image = self.image_ship
-        self.rect.centerx = self.cent_x
+        self.rect = self.rect_image
         self.angle = 0
         self.rotation = 0
         self.landing = 0

@@ -1,10 +1,8 @@
-from importlib import resources
-from pickle import FALSE
-from re import X
 import pygame as pg
 from TheQuest import FPS, levels
 from TheQuest.entities import Meteor, Ship, World, ShipStatus
 import os
+import sqlite3
 
 white = (255, 255, 255)
 
@@ -36,7 +34,7 @@ class Scene:
 class Intro(Scene):
     def __init__(self, screen):
         super().__init__(screen)
-        self.cover = pg.image.load("./resources/images/Intro/Earth_red.jpg")
+        self.cover = pg.image.load("./resources/images/Worlds/Earth_red.jpg")
         self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
         
        
@@ -67,7 +65,7 @@ class Intro(Scene):
 class History(Scene):
     def __init__(self, screen):
         super().__init__(screen)
-        self.historia = pg.image.load("./resources/images/Intro/Earth_red.jpg")
+        self.historia = pg.image.load("./resources/images/Worlds/Earth_red.jpg")
 
     def bucle_ppal(self) -> bool:
         while True:
@@ -104,7 +102,8 @@ class Play(Scene):
         self.meteors = pg.sprite.Group()
         self.all = pg.sprite.Group()
         self.clock.tick(FPS)
-        self.points = 0    
+        self.points = 0
+        self.life_count = 3
 
         #Fondo cargado
         self.backgrounds = []
@@ -147,7 +146,6 @@ class Play(Scene):
         self.meteors.empty()
         self.all.empty()
         self.all.add(self.world, self.ship)
-        self.life_count = 3
         self.points = 0
 
     #Creacion de meteoros
@@ -166,10 +164,38 @@ class Play(Scene):
         self.screen.blit(level_text, (10, 25))
         self.screen.blit(points, (10, 40))
     
+    #Llenar la base de datos con el puntaje y vidas
+    def write_records(self, points, name):
+        con = sqlite3.connect("data/Records.db")
+
+        cur = con.cursor()
+
+        cur.execute("""
+                SELECT *
+                FROM Records
+                ORDER BY Puntaje DESC
+                LIMIT 5
+                """)
+        e = cur.fetchall()
+
+        if len(e) == 5:
+            if e[4][1] <= self.points:
+                insert = f"""INSERT INTO Records VALUES ('{name}', '{points}')"""
+                cur.executescript(insert)
+        elif len(e) <= 5:
+            insert = f"""INSERT INTO Records VALUES ('{name}', '{points}')"""
+            cur.executescript(insert)
+
+        con.commit()
+
+        con.close()
+
+
     #Juego
     def bucle_ppal(self) -> bool:
         level = 0
         self.reset()
+        self.life_count = 3
                 
         while self.life_count > 0 and level < len(levels):
             self.create_meteors(level)
@@ -180,6 +206,8 @@ class Play(Scene):
                    
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
+                        return False
+                    if self.ship.ship_status == ShipStatus.explode:
                         return False
 
                 self.background_change(self.current_time)
@@ -197,6 +225,8 @@ class Play(Scene):
                 if self.ship.ship_status == ShipStatus.travel:   
                     if pg.sprite.spritecollide(self.ship, self.meteors, True):
                         self.life_count -= 1
+                        if self.life_count == 0:
+                            self.ship.ship_status = ShipStatus.explode
                              
                 self.screen.blit(self.background, (0,0))
 
@@ -225,8 +255,6 @@ class Play(Scene):
                     if self.ship.rotation == 181:
                         self.ship.ship_status = ShipStatus.landing
 
-                print(self.ship.ship_status)
-
                 self.background_change(self.current_time)
 
                 self.screen.blit(self.background, (0,0))
@@ -244,10 +272,51 @@ class Play(Scene):
             self.ship.reset()
             self.world.reset()
             self.reset()
-
+            
+        self.write_records(self.points, self.life_count)
         return True
 
 class Records(Scene):
-    def __init__(slef, screen):
+    def __init__(self, screen, estado):
         super().__init__(screen)
-        pass
+        self.win_background = pg.image.load(os.path.join("./resources/images/Worlds/Arrive_World.png")).convert_alpha()
+        self.lose_background = pg.image.load(os.path.join("./resources/images/Worlds/Earth_red.jpg")).convert_alpha()
+        self.time = 0
+        self.delay_pass = 1200
+        self.estado = estado
+
+    def bucle_ppal(self):
+        self.time = 0
+        while True:
+
+            self.clock.tick(FPS)
+
+            self.current_time = pg.time.get_ticks()
+
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    return False
+                
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_SPACE:
+                        return True
+                
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE:
+                        return pg.quit()
+
+            self.time += 1
+
+            if self.time >= self.delay_pass:
+                return True
+
+            if self.estado == 1:
+                self.screen.blit(self.win_background, (0, 0))
+            elif self.estado == 0:
+                self.screen.blit(self.lose_background, (0, 0))
+
+            self.press_continue("Presione ESPACIO para volver al inicio")
+
+            pg.display.flip()
+
+    

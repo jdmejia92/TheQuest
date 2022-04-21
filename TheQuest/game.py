@@ -1,5 +1,6 @@
 import pygame as pg
 from TheQuest.scenes import Play, Intro, History, Records
+import sqlite3
 
 pg.init()
 
@@ -10,8 +11,17 @@ class Game:
         play = Play(screen)
         intro = Intro(screen)
         history = History(screen)
-        records = Records(screen)
         self.scenes = [play]
+
+    def life_check(self):
+        con = sqlite3.connect()
+        life = play.life_count        
+        if life == 0:
+            self.scenes.append(Records(screen, estado = 0))
+        elif life > 0:
+            self.scenes.append(Records(screen, estado = 1))
+        print(life)
+        
 
 
     def deploy(self):
