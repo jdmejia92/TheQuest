@@ -1,8 +1,66 @@
 import pygame as pg
 from enum import Enum
 import os
+import sqlite3
+
 
 white = (255, 255, 255)
+
+class ProcessData():
+    def __init__(self):
+        self.con = sqlite3.connect("data/Records.db")
+        self.cur = self.con.cursor()
+
+    def show_records(self):
+        self.cur.execute("""
+                        SELECT Iniciales, Puntaje
+                        FROM Records
+                        ORDER BY Puntaje DESC
+                        LIMIT 5        
+        """)
+        n = self.cur.fetchall()
+        return n
+
+    def show_life(self):
+        self.cur.execute("""
+                        SELECT Vidas 
+                        FROM Records 
+                        ORDER BY id DESC
+                        LIMIT 1      
+        """)
+        n = self.cur.fetchone()[0]
+        return int(n)
+
+    def show_lastid(self):
+        self.cur.execute("""
+                        SELECT id
+                        FROM Records
+                        ORDER BY id DESC
+                        LIMIT 1
+        """)
+        n = self.cur.fetchone()[0]
+        return int(n)
+
+    def show_points(self):
+        self.cur.execute("""
+                        SELECT Puntaje
+                        FROM Records
+                        ORDER BY id DESC
+                        LIMIT 1
+        """)
+        n = self.cur.fetchone()[0]
+        return str(n)
+    
+    def player_record(self, life, points):
+        self.cur.execute(f"""INSERT INTO Records (Puntaje, Vidas) VALUES ('{points}', '{life}')""")
+
+        self.con.commit()
+
+    def update(self, id, initials):
+        self.cur.execute(f"""UPDATE Records Set Iniciales = '{initials}' WHERE id = {id}""")
+
+        self.con.commit()
+
 
 class ShipStatus(Enum):
     travel = 1
@@ -66,7 +124,7 @@ class Ship(pg.sprite.Sprite):
             if self.rect.centerx >= self.screen.get_width() - 700:
                 if self.rect.centerx % 10 == 0:
                     if self.landing <= 55:
-                        self.image = pg.transform.scale(self.image_rotate, (self.width, self.height))
+                        self.image = pg.transform.smoothscale(self.image_rotate, (self.width, self.height))
                         self.rect = self.image.get_rect(center=self.rect.center)
                         self.width -= 2.5
                         self.height -= 1
@@ -98,6 +156,7 @@ class Ship(pg.sprite.Sprite):
         self.arrive_speed = 2
         self.image = self.image_ship
         self.rect = self.rect_image
+        self.rect.centery = self.cent_y
         self.angle = 0
         self.rotation = 0
         self.landing = 0
@@ -129,7 +188,7 @@ class World(pg.sprite.Sprite):
         self.centrox = cent_x
         self.x_ini = self.centrox
         self.y_ini = cent_y
-        self.image = pg.image.load(os.path.join("resources/images/Arrive_World/New_World.png")).convert_alpha()
+        self.image = pg.image.load(os.path.join("resources/images/Worlds/New_World_level.png")).convert_alpha()
         self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
         self.ini_vx = 5
         self.vx = self.ini_vx
