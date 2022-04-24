@@ -45,7 +45,7 @@ class ProcessData():
         self.con.commit()
 
     def Createdata(self):
-        self.cur.execute("""CREATE TABLE [IF NOT EXISTS] Records (id INTEGER PRIMARY KEY AUTOINCREMENT, Iniciales TEXT, Puntaje INTEGER, Vidas INTEGER)""")
+        self.cur.execute("""CREATE TABLE IF NOT EXISTS Records (id INTEGER PRIMARY KEY AUTOINCREMENT, Iniciales TEXT, Puntaje INTEGER, Vidas INTEGER)""")
         
         self.con.commit()
 

@@ -5,8 +5,6 @@ import os
 import sys
 
 white = (255, 255, 255)
-lightBlue = (68, 85, 90)
-
 
 class Scene:
     def __init__(self, screen):
