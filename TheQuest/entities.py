@@ -12,42 +12,22 @@ class ProcessData():
         self.cur = self.con.cursor()
 
     def show_records(self):
-        self.cur.execute("""
-                        SELECT Iniciales, Puntaje
-                        FROM Records
-                        ORDER BY Puntaje DESC
-                        LIMIT 5        
-        """)
+        self.cur.execute("""SELECT Iniciales, Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
         n = self.cur.fetchall()
         return n
 
     def show_life(self):
-        self.cur.execute("""
-                        SELECT Vidas 
-                        FROM Records 
-                        ORDER BY id DESC
-                        LIMIT 1      
-        """)
+        self.cur.execute("""SELECT Vidas FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return int(n)
 
     def show_lastid(self):
-        self.cur.execute("""
-                        SELECT id
-                        FROM Records
-                        ORDER BY id DESC
-                        LIMIT 1
-        """)
+        self.cur.execute("""SELECT id FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return int(n)
 
     def show_points(self):
-        self.cur.execute("""
-                        SELECT Puntaje
-                        FROM Records
-                        ORDER BY id DESC
-                        LIMIT 1
-        """)
+        self.cur.execute("""SELECT Puntaje FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return str(n)
     
@@ -64,6 +44,10 @@ class ProcessData():
 
         self.con.commit()
 
+    def Createdata(self):
+        self.cur.execute("""CREATE TABLE [IF NOT EXISTS] Records (id INTEGER PRIMARY KEY AUTOINCREMENT, Iniciales TEXT, Puntaje INTEGER, Vidas INTEGER)""")
+        
+        self.con.commit()
 
 class ShipStatus(Enum):
     travel = 1

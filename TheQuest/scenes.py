@@ -285,7 +285,7 @@ class Play(Scene):
 
                 self.all.update()
 
-                if self.world.rect.centerx == 1250:
+                if self.world.rect.centerx == 1255:
                     self.points += 5
 
                 if self.world.rect.centerx <= self.screen.get_width() + 450:
@@ -310,6 +310,7 @@ class Play(Scene):
             asteroid += 1
             self.reset()
 
+        self.data.Createdata()
         self.data.player_record(points = self.points, life = self.life_count)
         return True
 
