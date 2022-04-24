@@ -8,6 +8,7 @@ class Game:
     def __init__(self, ancho=800, alto=600):
         self.screen = pg.display.set_mode((ancho, alto))
         pg.display.set_caption("The Quest")
+        self.data = ProcessData()
         self.play = Play(self.screen)
         self.intro = Intro(self.screen)
         self.history = History(self.screen)
@@ -36,9 +37,5 @@ class Game:
                     self.scenes.append(self.ending)
             elif self.active_escene >= len(self.scenes):
                 self.active_escene = 0
+                self.data.con.close()
                 self.reset()
-        
-
-
-            
-        

@@ -52,6 +52,9 @@ class ProcessData():
         return str(n)
     
     def player_record(self, life, points):
+        self.con = sqlite3.connect("data/Records.db")
+        self.cur = self.con.cursor()
+
         self.cur.execute(f"""INSERT INTO Records (Puntaje, Vidas) VALUES ('{points}', '{life}')""")
 
         self.con.commit()
@@ -90,7 +93,7 @@ class Ship(pg.sprite.Sprite):
         self.ship_status = ShipStatus.travel
 
     def update(self):
-        """if self.ship_status == ShipStatus.lunch:"""
+        
 
 
         if self.ship_status == ShipStatus.arrive:
@@ -161,16 +164,20 @@ class Ship(pg.sprite.Sprite):
         self.rotation = 0
         self.landing = 0
 
-        
-        
+
 class Meteor(pg.sprite.Sprite):
-    def __init__(self, centrox, centroy):
+    def __init__(self, centrox, centroy, size):
         super().__init__()
         self.vx = 3
         self.x_ini = centrox
         self.y_ini = centroy
-        self.image = pg.image.load("resources/images/Meteor/Meteor_ready.png")
-        self.rect = self.image.get_rect(center=(centrox, centroy))
+        self.size = size
+        if self.size == 1:
+            self.image = pg.image.load(os.path.join("resources/images/Meteor/Meteor_ready.png")).convert_alpha()
+            self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
+        elif self.size != 1:
+           self.image = pg.image.load(os.path.join("resources/images/Meteor/Big_Meteor.png")).convert_alpha()
+           self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
 
     def update(self):
         self.rect.x -= self.vx
