@@ -29,7 +29,7 @@ class Game:
             self.active_escene += 1
             if self.active_escene == 3:
                 n = ProcessData().show_life()
-                if n == 0:
+                if n <= 0:
                     self.scenes.append(Records(self.screen, estado = False))
                     self.scenes.append(self.ending)
                 elif n > 0:

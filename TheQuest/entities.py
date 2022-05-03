@@ -167,7 +167,7 @@ class Meteor(pg.sprite.Sprite):
         self.rect.x -= self.vx
 
     def pass_meteor(self):
-        if self.rect.centerx <= -30:
+        if self.rect.centerx <= -50:
             return True
 
         return False 

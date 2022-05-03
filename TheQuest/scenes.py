@@ -1,8 +1,10 @@
+from cgitb import small
 import pygame as pg
 from TheQuest import FPS, levels, BigAsteroids
 from TheQuest.entities import Meteor, Ship, World, ShipStatus, ProcessData
 import os
 import sys
+import random as rd
 
 white = (255, 255, 255)
 
@@ -141,9 +143,13 @@ class Play(Scene):
         self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 16)
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
         self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
+        #Niveles
         self.meteors = pg.sprite.Group()
+        self.asteroids = pg.sprite.Group()
         self.all = pg.sprite.Group()
+
         self.clock.tick(FPS)
+        #Contadores
         self.points = 0
         self.life_count = 3
 
@@ -186,6 +192,7 @@ class Play(Scene):
     #Reinicio al pasar de nivel
     def reset(self):
         self.meteors.empty()
+        self.asteroids.empty()
         self.all.empty()
         self.all.add(self.world, self.ship)
         self.ship.reset()
@@ -202,8 +209,29 @@ class Play(Scene):
     def create_bigmeteors(self, asteroid):
         for col, fil in BigAsteroids[asteroid]:
             m = Meteor(800 * col, 30 * fil, 0)
-            self.meteors.add(m)
-        self.all.add(self.meteors)
+            self.asteroids.add(m)
+        self.all.add(self.asteroids)
+    
+    #Eliminacion de meteoros
+    def eliminate_meteors(self, rock, number):
+        points = 0
+        life = 0
+        for i in rock:
+            if i.pass_meteor():
+                rock.remove(i)
+                self.all.remove(i)
+                if number == 1:
+                    points += 1
+                elif number == 2:
+                    points += 2
+
+            if pg.sprite.spritecollide(self.ship, rock, True) and self.ship.ship_status == ShipStatus.travel:
+                if number == 1:
+                    life += 1
+                elif number == 2:
+                    life += 2
+
+        return points, life
 
     #Contadores en pantalla
     def counters(self, level):
@@ -218,9 +246,6 @@ class Play(Scene):
     def bucle_ppal(self) -> bool:
         level = 0
         asteroid = 0
-        points = 0
-        life_count = 3
-        self.life_count = 3
         self.reset()
 
         while self.life_count > 0 and level < len(levels):
@@ -242,23 +267,18 @@ class Play(Scene):
                 self.background_change(self.current_time)
 
                 self.all.update()
-                
-                #Eliminar meteoros
-                for meteor in self.meteors:
-                    if meteor.pass_meteor():
-                        self.meteors.remove(meteor)
-                        self.all.remove(meteor)
-                        points += 1
-                    elif pg.sprite.spritecollide(self.ship, self.meteors, True) and self.ship.ship_status == ShipStatus.travel:
-                        life_count -= 1
 
-                self.points = points
-                self.life_count = life_count
+                small = self.eliminate_meteors(self.meteors, 1)
+                big = self.eliminate_meteors(self.asteroids, 2)
+
+                self.life_count -= small[1] + big[1]
+                self.points += small[0] + big[0]
 
                 if self.life_count == 0:
                    self.ship.ship_status = ShipStatus.explode                 
-                elif len(self.meteors) == 0:
-                    self.world.status_arrive = True 
+                
+                if len(self.meteors) == 0:
+                    self.world.status_arrive = True
 
                 self.screen.blit(self.background, (0,0))
 
@@ -270,6 +290,7 @@ class Play(Scene):
 
             #Bucle cuando llega al mundo
             while self.world.status_arrive == True:
+                points_arrive = 0
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
 
@@ -283,8 +304,10 @@ class Play(Scene):
 
                 self.all.update()
 
-                if self.world.rect.centerx == 1255:
-                    self.points += 5
+                if self.world.rect.centerx == 1260:
+                    points_arrive += 5
+                
+                self.points += points_arrive
 
                 if self.world.rect.centerx <= self.screen.get_width() + 450:
                     self.ship.ship_status = ShipStatus.arrive

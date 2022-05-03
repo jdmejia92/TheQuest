@@ -2,44 +2,40 @@ import random as rd
 
 FPS = 60
 
-BigAsteroids = [
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(3,8),rd.uniform(1,5)), (rd.uniform(5,10),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,14),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(3,7)), (rd.uniform(5,10),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,14),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(7,10)), (rd.uniform(5,10),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,14),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25)), 
-        (rd.uniform(1,5),rd.uniform(19,25)), (rd.uniform(3,8),rd.uniform(19,25)), (rd.uniform(5,10),rd.uniform(19,25)), (rd.uniform(10,11),rd.uniform(19,25)), (rd.uniform(12,14),rd.uniform(19,25)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25))], 
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(3,8),rd.uniform(1,5)), (rd.uniform(5,10),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,14),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(3,7)), (rd.uniform(5,10),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,14),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(7,10)), (rd.uniform(5,10),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,14),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25)), 
-        (rd.uniform(1,5),rd.uniform(19,25)), (rd.uniform(3,8),rd.uniform(19,25)), (rd.uniform(5,10),rd.uniform(19,25)), (rd.uniform(10,11),rd.uniform(19,25)), (rd.uniform(12,14),rd.uniform(19,25)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25))],
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(3,8),rd.uniform(1,5)), (rd.uniform(5,10),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,14),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(3,7)), (rd.uniform(5,10),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,14),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(3,8),rd.uniform(7,10)), (rd.uniform(5,10),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,14),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25)), 
-        (rd.uniform(1,5),rd.uniform(19,25)), (rd.uniform(3,8),rd.uniform(19,25)), (rd.uniform(5,10),rd.uniform(19,25)), (rd.uniform(10,11),rd.uniform(19,25)), (rd.uniform(12,14),rd.uniform(19,25)), 
-        (rd.uniform(1,5),rd.uniform(20,25)), (rd.uniform(3,8),rd.uniform(20,25)), (rd.uniform(5,10),rd.uniform(20,25)), (rd.uniform(10,11),rd.uniform(20,25)), (rd.uniform(12,14),rd.uniform(20,25))]
-        ]
+BigAsteroids = []
 
-levels = [
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(2,6),rd.uniform(1,5)), (rd.uniform(7,9),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,13),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(2,6),rd.uniform(3,7)), (rd.uniform(7,9),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,13),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(7,10)), (rd.uniform(2,6),rd.uniform(7,10)), (rd.uniform(7,9),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,13),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(10,15)), (rd.uniform(2,6),rd.uniform(10,15)), (rd.uniform(7,9),rd.uniform(10,15)), (rd.uniform(10,11),rd.uniform(10,15)), (rd.uniform(12,13),rd.uniform(10,15)), 
-        (rd.uniform(1,5),rd.uniform(16,20)), (rd.uniform(2,6),rd.uniform(16,20)), (rd.uniform(7,9),rd.uniform(16,20)), (rd.uniform(10,11),rd.uniform(16,20)), (rd.uniform(12,13),rd.uniform(16,20)), 
-        (rd.uniform(1,5),rd.uniform(25,40)), (rd.uniform(2,6),rd.uniform(25,40)), (rd.uniform(7,9),rd.uniform(25,40)), (rd.uniform(10,11),rd.uniform(25,40)), (rd.uniform(12,13),rd.uniform(25,40))],
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(2,6),rd.uniform(1,5)), (rd.uniform(7,9),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,13),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(2,6),rd.uniform(3,7)), (rd.uniform(7,9),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,13),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(7,10)), (rd.uniform(2,6),rd.uniform(7,10)), (rd.uniform(7,9),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,13),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(10,15)), (rd.uniform(2,6),rd.uniform(10,15)), (rd.uniform(7,9),rd.uniform(10,15)), (rd.uniform(10,11),rd.uniform(10,15)), (rd.uniform(12,13),rd.uniform(10,15)), 
-        (rd.uniform(1,5),rd.uniform(16,20)), (rd.uniform(2,6),rd.uniform(16,20)), (rd.uniform(7,9),rd.uniform(16,20)), (rd.uniform(10,11),rd.uniform(16,20)), (rd.uniform(12,13),rd.uniform(16,20)), 
-        (rd.uniform(1,5),rd.uniform(25,40)), (rd.uniform(2,6),rd.uniform(25,40)), (rd.uniform(7,9),rd.uniform(25,40)), (rd.uniform(10,11),rd.uniform(25,40)), (rd.uniform(12,13),rd.uniform(25,40))],
-        [(rd.uniform(1,5),rd.uniform(1,5)), (rd.uniform(2,6),rd.uniform(1,5)), (rd.uniform(7,9),rd.uniform(1,5)), (rd.uniform(10,11),rd.uniform(1,5)), (rd.uniform(12,13),rd.uniform(1,5)), 
-        (rd.uniform(1,5),rd.uniform(3,7)), (rd.uniform(2,6),rd.uniform(3,7)), (rd.uniform(7,9),rd.uniform(3,7)), (rd.uniform(10,11),rd.uniform(3,7)), (rd.uniform(12,13),rd.uniform(3,7)), 
-        (rd.uniform(1,5),rd.uniform(7,10)), (rd.uniform(2,6),rd.uniform(7,10)), (rd.uniform(7,9),rd.uniform(7,10)), (rd.uniform(10,11),rd.uniform(7,10)), (rd.uniform(12,13),rd.uniform(7,10)), 
-        (rd.uniform(1,5),rd.uniform(10,15)), (rd.uniform(2,6),rd.uniform(10,15)), (rd.uniform(7,9),rd.uniform(10,15)), (rd.uniform(10,11),rd.uniform(10,15)), (rd.uniform(12,13),rd.uniform(10,15)), 
-        (rd.uniform(1,5),rd.uniform(16,20)), (rd.uniform(2,6),rd.uniform(16,20)), (rd.uniform(7,9),rd.uniform(16,20)), (rd.uniform(10,11),rd.uniform(16,20)), (rd.uniform(12,13),rd.uniform(16,20)), 
-        (rd.uniform(1,5),rd.uniform(25,40)), (rd.uniform(2,6),rd.uniform(25,40)), (rd.uniform(7,9),rd.uniform(25,40)), (rd.uniform(10,11),rd.uniform(25,40)), (rd.uniform(12,13),rd.uniform(25,40))]
-        ]
+#Lista valores de x de los asteroides grandes
+for i in range(3):
+    x_a = []
+    for i in range(30):
+        n = rd.uniform(1,14)
+        x_a.append(n)
+
+#Lista valores de y de los asteroides grandes
+    y_a = []
+    for i in range(30):
+        m = rd.uniform(0,23)
+        y_a.append(m)
+
+#Crear la lista de tuplas para los grandes asteroides
+    level = list(zip(x_a, y_a))
+    BigAsteroids.append(level)
+
+levels = []
+
+#Lista valores de x de los meteoros pequeños
+for i in range(3):
+    x = []
+    for i in range(30):
+        n = rd.uniform(1,14)
+        x.append(n)
+
+#Lista valores de y de los meteoros pequeños
+    y = []
+    for i in range(30):
+        m = rd.uniform(0,23)
+        y.append(m)
+
+#Crear la lista de tuplas para los meteoros pequeños
+    level = list(zip(x, y))
+    levels.append(level)
