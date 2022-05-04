@@ -6,20 +6,29 @@ import sqlite3
 
 white = (255, 255, 255)
 
+#Base de datos
 class ProcessData():
     def __init__(self):
         self.con = sqlite3.connect("data/Records.db")
         self.cur = self.con.cursor()
 
+    #Mostrando los puntos en la pantalla final
     def show_records(self):
         self.cur.execute("""SELECT Iniciales, Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
         n = self.cur.fetchall()
         return n
 
+    #Para cargar el escensario dependiendo de si ganaste o perdiste
     def show_life(self):
         self.cur.execute("""SELECT Vidas FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return int(n)
+
+    #Comparar el puntaje visible mas bajo
+    def lower_visible_point(self):
+        self.cur.execute("""SELECT Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
+        n = self.cur.fetchall()[4][0]
+        return n
 
     def show_lastid(self):
         self.cur.execute("""SELECT id FROM Records ORDER BY id DESC LIMIT 1""")
@@ -29,7 +38,12 @@ class ProcessData():
     def show_points(self):
         self.cur.execute("""SELECT Puntaje FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
-        return str(n)
+        return n
+
+    def lower_visible_point(self):
+        self.cur.execute("""SELECT Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
+        n = self.cur.fetchall()[4][0]
+        return n
     
     def player_record(self, life, points):
         self.con = sqlite3.connect("data/Records.db")
@@ -49,6 +63,7 @@ class ProcessData():
         
         self.con.commit()
 
+#Multiples estados de la nave
 class ShipStatus(Enum):
     travel = 1
     arrive = 2
@@ -56,7 +71,7 @@ class ShipStatus(Enum):
     explode = 4
     landing = 5
 
-
+#Nave
 class Ship(pg.sprite.Sprite):
     def __init__(self, screen, cent_x, cent_y):
         super().__init__()
@@ -77,9 +92,7 @@ class Ship(pg.sprite.Sprite):
         self.ship_status = ShipStatus.travel
 
     def update(self):
-        
-
-
+        #Animacion cuando la nave llega al mundo
         if self.ship_status == ShipStatus.arrive:
             if self.rect.centery >= self.screen.get_height()//2:
                 self.rect.centery -= self.arrive_speed
@@ -90,6 +103,7 @@ class Ship(pg.sprite.Sprite):
                 if self.rect.centery >= self.screen.get_height()//2:
                     self.arrive_speed = 0
             
+            #Rotacion de la nave
             if self.arrive_speed == 0:
                 if self.rotation <= 180:
                     self.image = pg.transform.rotate(self.image_ship, self.angle)
@@ -101,6 +115,7 @@ class Ship(pg.sprite.Sprite):
                 self.width = self.image.get_rect().width
                 self.height = self.image.get_rect().height
 
+        #La nave se pone mas pequena al acercarse al mundo
         elif self.ship_status == ShipStatus.landing:
             if self.rotation >= 180 and self.rect.right < self.screen.get_width():
                 self.arrive_speed = 2
@@ -117,8 +132,8 @@ class Ship(pg.sprite.Sprite):
                         self.height -= 1
                     
                     self.landing += 1
-               
 
+        #Cuando la nave se encuentra en movimiento
         elif self.ship_status == ShipStatus.travel:               
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
@@ -148,23 +163,28 @@ class Ship(pg.sprite.Sprite):
         self.rotation = 0
         self.landing = 0
 
-
+#Meteoros y Asteroides
 class Meteor(pg.sprite.Sprite):
     def __init__(self, centrox, centroy, size):
         super().__init__()
-        self.vx = 3
+        self.vx = 2
+        self.vx_big = 1
         self.x_ini = centrox
         self.y_ini = centroy
         self.size = size
         if self.size == 1:
             self.image = pg.image.load(os.path.join("resources/images/Meteor/Meteor_ready.png")).convert_alpha()
             self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
-        elif self.size != 1:
+        elif self.size == 0:
            self.image = pg.image.load(os.path.join("resources/images/Meteor/Big_Meteor.png")).convert_alpha()
            self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
 
+    #Velocidad de los meteoros y asteroides
     def update(self):
-        self.rect.x -= self.vx
+        if self.size == 1:
+            self.rect.x -= self.vx
+        elif self.size == 0:
+            self.rect.x -= self.vx_big
 
     def pass_meteor(self):
         if self.rect.centerx <= -50:

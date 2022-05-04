@@ -113,6 +113,7 @@ class History(Scene):
 
 
     def bucle_ppal(self) -> bool:
+        self.active_background = 0
         while True:
 
             self.clock.tick(FPS)
@@ -143,17 +144,14 @@ class Play(Scene):
         self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 16)
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
         self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
-        #Niveles
+        #Lista de niveles
         self.meteors = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
         self.all = pg.sprite.Group()
 
         self.clock.tick(FPS)
-        #Contadores
-        self.points = 0
-        self.life_count = 3
 
-        #Fondo cargado
+        #Lista con el fondo cargado
         self.backgrounds = []
         self.active_background = 0
         self.how_many = 0
@@ -163,7 +161,7 @@ class Play(Scene):
 
         self.current_time = 0
 
-    #Carga del fondo movible
+    #Carga del fondo
     def load_background(self):
         space = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
         for colum in range(1600):
@@ -196,7 +194,7 @@ class Play(Scene):
         self.all.empty()
         self.all.add(self.world, self.ship)
         self.ship.reset()
-        self.world.reset()        
+        self.world.reset()      
 
     #Creacion de meteoros
     def create_meteors(self, level):
@@ -244,8 +242,11 @@ class Play(Scene):
 
     #Juego
     def bucle_ppal(self) -> bool:
+        #Contadores
         level = 0
         asteroid = 0
+        self.life_count = 3
+        self.points = 0
         self.reset()
 
         while self.life_count > 0 and level < len(levels):
@@ -366,31 +367,34 @@ class Records(Scene):
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     return True
 
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_BACKSPACE:
-                        self.initials = self.initials[:-1]
-                    else:
-                        self.initials += event.unicode
+                if self.estado == 3 or self.estado == 4:
+                    if event.type == pg.KEYDOWN:
+                        if event.key == pg.K_BACKSPACE:
+                            self.initials = self.initials[:-1]
+                        else:
+                            self.initials += event.unicode
 
-                    if len(self.initials) > 3:
-                        self.initials = self.initials[:3]
+                        if len(self.initials) > 3:
+                            self.initials = self.initials[:3]
 
-            if self.estado == True:
+            if self.estado == 1 or self.estado == 3:
                 self.screen.blit(self.win_background, (0, 0))
-            elif self.estado == False:
+            elif self.estado == 2 or self.estado == 4:
                 self.screen.blit(self.lose_background, (0, 0))
-
-            self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
 
             points = self.data.show_points()
 
-            text_points = self.font_points.render(points, True, white)
+            text_points = self.font_points.render(str(points), True, white)
             self.screen.blit(text_points, (412.9, 284.9))
 
-            text_surface = self.font_initials.render(self.initials, True, white)
-            self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
+            if self.estado == 3 or self.estado == 4:
+                self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
+                text_surface = self.font_initials.render(self.initials, True, white)
+                self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
 
-            if len(self.initials) == 3:
+            if self.estado == 3 and len(self.initials) == 3 or self.estado == 4 and len(self.initials) == 3:
+                self.press_continue("Presione ENTER para continuar...")
+            else:
                 self.press_continue("Presione ENTER para continuar...")
 
             pg.display.flip()

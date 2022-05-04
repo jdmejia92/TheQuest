@@ -20,6 +20,13 @@ class Game:
         self.scenes.clear()
         scenes = [self.intro, self.history, self.play]
         self.scenes.extend(scenes)
+
+    def process_data(self):
+        try:
+            m = ProcessData().lower_visible_point()
+            return m
+        except IndexError:
+            return int(0)
         
     def deploy(self):
         self.active_escene = 0
@@ -29,11 +36,19 @@ class Game:
             self.active_escene += 1
             if self.active_escene == 3:
                 n = ProcessData().show_life()
-                if n <= 0:
-                    self.scenes.append(Records(self.screen, estado = False))
+                p = ProcessData().show_points()
+                m = self.process_data()
+                if n <= 0 and p < m:
+                    self.scenes.append(Records(self.screen, estado = 2))
                     self.scenes.append(self.ending)
-                elif n > 0:
-                    self.scenes.append(Records(self.screen, estado = True))
+                elif n > 0 and p < m:
+                    self.scenes.append(Records(self.screen, estado = 1))
+                    self.scenes.append(self.ending)
+                elif n <= 0 and p > m or n <= 0 and m == 0:
+                    self.scenes.append(Records(self.screen, estado = 4))
+                    self.scenes.append(self.ending)
+                elif n > 0 and p > m:
+                    self.scenes.append(Records(self.screen, estado = 3))
                     self.scenes.append(self.ending)
             elif self.active_escene >= len(self.scenes):
                 self.active_escene = 0
