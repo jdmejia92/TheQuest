@@ -167,8 +167,8 @@ class Ship(pg.sprite.Sprite):
 class Meteor(pg.sprite.Sprite):
     def __init__(self, centrox, centroy, size):
         super().__init__()
-        self.vx = 2
-        self.vx_big = 1
+        self.vx = 3
+        self.vx_big = 2
         self.x_ini = centrox
         self.y_ini = centroy
         self.size = size

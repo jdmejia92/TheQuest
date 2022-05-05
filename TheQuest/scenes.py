@@ -249,11 +249,11 @@ class Play(Scene):
         self.points = 0
         self.reset()
 
-        while self.life_count > 0 and level < len(levels):
+        while self.life_count > 0 and asteroid < len(BigAsteroids):
             self.create_meteors(level)
             self.create_bigmeteors(asteroid)
             
-            while self.life_count > 0 and len(self.meteors) > 0:
+            while self.life_count > 0 and len(self.asteroids) > 0:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
 
@@ -275,10 +275,10 @@ class Play(Scene):
                 self.life_count -= small[1] + big[1]
                 self.points += small[0] + big[0]
 
-                if self.life_count == 0:
+                if self.life_count <= 0:
                    self.ship.ship_status = ShipStatus.explode                 
                 
-                if len(self.meteors) == 0:
+                if len(self.asteroids) == 0:
                     self.world.status_arrive = True
 
                 self.screen.blit(self.background, (0,0))
@@ -344,6 +344,7 @@ class Records(Scene):
         self.font_initials = pg.font.Font("./resources/fonts/Techovier Bold.ttf", 29)
         self.font_points = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
         self.input = pg.image.load(os.path.join("./resources/images/Input/Input.png")).convert_alpha()
+        self.input_initials = pg.image.load(os.path.join("./resources/images/Worlds/Ingresa_iniciales.png")).convert_alpha()
         self.input_rect = self.input.get_rect(center=(self.screen.get_width()//2, 450))
         self.active = False
         self.estado = estado
@@ -388,6 +389,7 @@ class Records(Scene):
             self.screen.blit(text_points, (412.9, 284.9))
 
             if self.estado == 3 or self.estado == 4:
+                self.screen.blit(self.input_initials, (self.screen.get_width()//2, self.screen.get_height()//2 + 50))
                 self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
                 text_surface = self.font_initials.render(self.initials, True, white)
                 self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
