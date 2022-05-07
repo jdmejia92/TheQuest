@@ -4,9 +4,15 @@ from TheQuest import FPS, levels, BigAsteroids
 from TheQuest.entities import Meteor, Ship, World, ShipStatus, ProcessData
 import os
 import sys
-import random as rd
+from enum import Enum
 
 white = (255, 255, 255)
+
+class Alternative_Ending(Enum):
+    win_NewRecord = 1
+    win_NoRecord = 2
+    lose_NewRecord = 3
+    lose_NoRecord = 4
 
 class Scene:
     def __init__(self, screen):
@@ -21,7 +27,7 @@ class Scene:
         self.delay_show = 110
         self.show_count = 0
 
-    #Texto que parpadee
+    #Hacer que el texto parpadee
     def press_continue(self, texto):
         if self.current_time >= self.change_time:
             self.change_time = self.current_time + self.delay
@@ -40,7 +46,18 @@ class Intro(Scene):
     def __init__(self, screen):
         super().__init__(screen)
         self.cover = pg.image.load("./resources/images/Worlds/Earth_red.jpg")
-        self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
+        self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)      
+
+    #Cargar los titulos una sola vez
+    def title(self):
+        title = self.font_title.render("THE QUEST", True, white)
+        rectexto = title.get_rect()
+        self.screen.blit(title, ((self.screen.get_width() - rectexto.width)//2, (self.screen.get_height() - rectexto.h)//2))
+
+    #Letrero de pasar a la siguiente escena
+    def press_nextscene(self):
+        if self.show_count >= 80:
+            self.press_continue("Presiona ESPACIO para iniciar")
 
     def bucle_ppal(self):
         while True:
@@ -51,21 +68,17 @@ class Intro(Scene):
             for event in pg.event.get():
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     return True
-            
                 if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                     pg.quit()
                     sys.exit()
 
             self.screen.blit(self.cover, (0, 0))
-            title = self.font_title.render("THE QUEST", True, white)
-            rectexto = title.get_rect()
 
-            self.screen.blit(title, ((self.screen.get_width() - rectexto.width)//2,
-                                             (self.screen.get_height() - rectexto.h)//2))
+            self.title()
 
             self.show_count += 1
-            if self.show_count >= 80:
-                self.press_continue("Presiona ESPACIO para iniciar")
+            
+            self.press_nextscene()
             
             pg.display.flip()
 
@@ -83,7 +96,7 @@ class History(Scene):
 
         self.current_time = 0
 
-
+    #Cargar el fondo
     def load_background(self):
         space = pg.image.load(os.path.join("./resources/images/Worlds/history.png")).convert_alpha()
         for fila in range(600):
@@ -97,6 +110,7 @@ class History(Scene):
         self.how_many = len(self.backgrounds)
         self.background = self.backgrounds[self.active_background]
 
+    #Mover el fondo
     def background_change(self, dt):
         self.current_time += dt
         try:
@@ -111,6 +125,10 @@ class History(Scene):
         except IndexError:
             pass
 
+    #Letrero de pasar a la siguiente escena
+    def press_nextscene(self):
+        if self.move_background == False:
+            self.press_continue("Presione ESPACIO para continuar")
 
     def bucle_ppal(self) -> bool:
         self.active_background = 0
@@ -133,8 +151,7 @@ class History(Scene):
 
             self.screen.blit(self.background, (0,0))
 
-            if self.move_background == False:
-                self.press_continue("Presione ESPACIO para continuar")
+            self.press_nextscene()
 
             pg.display.flip()
 
@@ -240,6 +257,19 @@ class Play(Scene):
         self.screen.blit(level_text, (10, 28))
         self.screen.blit(points, (10, 45))
 
+    #Activar llegar al mundo o que la nave explote
+    def game_over(self):
+        if self.life_count <= 0:
+            self.ship.ship_status = ShipStatus.explode                 
+        
+        if len(self.asteroids) == 0:
+            self.world.status_arrive = True
+
+    #Letrero de pasar a la siguiente escena
+    def press_nextscene(self):
+        if self.ship.rect.right >= self.screen.get_width():
+            self.press_continue("Presione ESPACIO para continuar")
+
     #Juego
     def bucle_ppal(self) -> bool:
         #Contadores
@@ -275,11 +305,7 @@ class Play(Scene):
                 self.life_count -= small[1] + big[1]
                 self.points += small[0] + big[0]
 
-                if self.life_count <= 0:
-                   self.ship.ship_status = ShipStatus.explode                 
-                
-                if len(self.asteroids) == 0:
-                    self.world.status_arrive = True
+                self.game_over()
 
                 self.screen.blit(self.background, (0,0))
 
@@ -323,8 +349,7 @@ class Play(Scene):
 
                 self.counters(level)
 
-                if self.ship.rect.right >= self.screen.get_width():
-                    self.press_continue("Presione ESPACIO para continuar")
+                self.press_nextscene()
 
                 pg.display.flip()
 
@@ -344,12 +369,40 @@ class Records(Scene):
         self.font_initials = pg.font.Font("./resources/fonts/Techovier Bold.ttf", 29)
         self.font_points = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
         self.input = pg.image.load(os.path.join("./resources/images/Input/Input.png")).convert_alpha()
-        self.input_initials = pg.image.load(os.path.join("./resources/images/Worlds/Ingresa_iniciales.png")).convert_alpha()
         self.input_rect = self.input.get_rect(center=(self.screen.get_width()//2, 450))
+        self.write_initials = pg.image.load(os.path.join("./resources/images/Worlds/Ingresa_iniciales.png")).convert_alpha()
+        self.write_initials_rect = self.write_initials.get_rect()
         self.active = False
         self.estado = estado
-        self.initials = ""       
-        
+        self.initials = ""    
+
+    #Cargar fondos alternativos, segun acabe el juego
+    def load_background(self):
+        if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.win_NoRecord:
+            self.screen.blit(self.win_background, (0, 0))
+        elif self.estado == Alternative_Ending.lose_NewRecord or self.estado == Alternative_Ending.lose_NoRecord:
+            self.screen.blit(self.lose_background, (0, 0))
+
+    #Mostrar los puntos
+    def show_points(self):
+        points = self.data.show_points()
+        text_points = self.font_points.render(str(points), True, white)
+        self.screen.blit(text_points, (412.9, 284.9))
+    
+    #Solicitar ingresar los puntos en caso supere al 5to mas alto
+    def input_initials(self):
+        if self.estado == Alternative_Ending.lose_NewRecord or self.estado == Alternative_Ending.win_NewRecord:
+            self.screen.blit(self.write_initials, (self.screen.get_width()//2 - self.write_initials_rect.centerx, self.screen.get_height()//2 + 55))
+            self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
+            text_surface = self.font_initials.render(self.initials, True, white)
+            self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
+
+    #Letrero para pasar a la siguiente escena
+    def press_nextscene(self):
+        if self.estado == Alternative_Ending.lose_NewRecord and len(self.initials) >= 3 or self.estado == Alternative_Ending.win_NewRecord and len(self.initials) >= 3:
+            self.press_continue("Presione ENTER para continuar...")
+        elif self.estado == Alternative_Ending.lose_NoRecord or self.estado == Alternative_Ending.win_NoRecord:
+            self.press_continue("Presione ENTER para continuar...")
 
     def bucle_ppal(self):
         self.time = 0
@@ -368,39 +421,24 @@ class Records(Scene):
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     return True
 
-                if self.estado == 3 or self.estado == 4:
+                if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.lose_NewRecord:
                     if event.type == pg.KEYDOWN:
                         if event.key == pg.K_BACKSPACE:
                             self.initials = self.initials[:-1]
                         else:
                             self.initials += event.unicode
-
                         if len(self.initials) > 3:
                             self.initials = self.initials[:3]
 
-            if self.estado == 1 or self.estado == 3:
-                self.screen.blit(self.win_background, (0, 0))
-            elif self.estado == 2 or self.estado == 4:
-                self.screen.blit(self.lose_background, (0, 0))
+            self.load_background()
 
-            points = self.data.show_points()
+            self.show_points()
+            self.input_initials()
 
-            text_points = self.font_points.render(str(points), True, white)
-            self.screen.blit(text_points, (412.9, 284.9))
-
-            if self.estado == 3 or self.estado == 4:
-                self.screen.blit(self.input_initials, (self.screen.get_width()//2, self.screen.get_height()//2 + 50))
-                self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
-                text_surface = self.font_initials.render(self.initials, True, white)
-                self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
-
-            if self.estado == 3 and len(self.initials) == 3 or self.estado == 4 and len(self.initials) == 3:
-                self.press_continue("Presione ENTER para continuar...")
-            else:
-                self.press_continue("Presione ENTER para continuar...")
+            self.press_nextscene()
 
             pg.display.flip()
-        
+
             self.initials = self.initials.upper()
             n = self.data.show_lastid()
             self.data.update(id = n, initials = self.initials)
@@ -412,6 +450,27 @@ class Ending(Scene):
         self.ending = pg.image.load("./resources/images/Worlds/Earth.png")
         self.rect = self.ending.get_rect()
         self.font_records = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 58)
+
+    #Muestra los mejores 5 puntajes
+    def show_records(self):
+        self.positiony = 0
+        records = self.data.show_records()
+        for name, points in records:
+            if name == None:
+                name = "###"
+
+            self.positiony += 75
+            record_name = self.font_records.render(str(name), True, white)
+            record_points = self.font_records.render(str(points), True, white)
+            self.screen.blit(record_name, (270, 68 + self.positiony))
+            self.screen.blit(record_points, (480, 68 + self.positiony))
+
+    #Letrero para continuar a la siguiente escena
+    def press_nextscene(self):
+        if self.show_count >= 80:
+            self.press_continue("Presiona ESPACIO para volver a iniciar")
+        if self.show_count >= 2500:
+            return True
 
     def bucle_ppal(self) -> bool:
        while True:
@@ -429,25 +488,10 @@ class Ending(Scene):
             
             self.screen.blit(self.ending, (0, 0))
 
-            self.positiony = 0
-
-            records = self.data.show_records()
-            for name, points in records:
-                self.positiony += 75
-                record_name = self.font_records.render(str(name), True, white)
-                record_points = self.font_records.render(str(points), True, white)
-                self.screen.blit(record_name, (270, 68 + self.positiony))
-                self.screen.blit(record_points, (480, 68 + self.positiony))
-
-            self.show_count += 1
-            if self.show_count >= 80:
-                self.press_continue("Presiona ESPACIO para volver a iniciar")
+            self.show_records()
 
             self.show_count += 1
 
-            if self.show_count >= 2500:
-                return True
-            
+            self.press_nextscene()
+
             pg.display.flip()
-
-    

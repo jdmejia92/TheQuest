@@ -5,7 +5,7 @@ FPS = 60
 BigAsteroids = []
 
 #Lista valores de x de los asteroides grandes
-for i in range(3):
+for i in range(1):
     x_a = []
     for i in range(30):
         n = rd.uniform(1,14)
@@ -24,7 +24,7 @@ for i in range(3):
 levels = []
 
 #Lista valores de x de los meteoros pequeños
-for i in range(3):
+for i in range(1):
     x = []
     for i in range(30):
         n = rd.uniform(1,14)

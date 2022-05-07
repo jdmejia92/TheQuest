@@ -1,5 +1,5 @@
 import pygame as pg
-from TheQuest.scenes import Play, Intro, History, Records, Ending
+from TheQuest.scenes import Play, Intro, History, Records, Ending, Alternative_Ending
 from TheQuest.entities import ProcessData
 
 pg.init()
@@ -20,6 +20,7 @@ class Game:
         self.scenes.clear()
         scenes = [self.intro, self.history, self.play]
         self.scenes.extend(scenes)
+        self.active_escene = 0
 
     def process_data(self):
         try:
@@ -27,30 +28,38 @@ class Game:
             return m
         except IndexError:
             return int(0)
+
+    def final_scenes(self):
+        if self.active_escene == 3:
+            n = ProcessData().show_life()
+            p = ProcessData().show_points()
+            m = self.process_data()
+            if n <= 0 and p < m:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NoRecord))
+                self.scenes.append(self.ending)
+            elif n > 0 and p < m:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NoRecord))
+                self.scenes.append(self.ending)
+            elif n <= 0 and p > m or n <= 0 and m == 0:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NewRecord))
+                self.scenes.append(self.ending)
+            elif n > 0 and p > m:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NewRecord))
+                self.scenes.append(self.ending)
         
     def deploy(self):
-        self.active_escene = 0
+        self.reset()
         game_active = True
         while game_active:
-            game_active = self.scenes[self.active_escene].bucle_ppal()
+            try:
+                game_active = self.scenes[self.active_escene].bucle_ppal()
+            except IndexError:
+                pass
             self.active_escene += 1
-            if self.active_escene == 3:
-                n = ProcessData().show_life()
-                p = ProcessData().show_points()
-                m = self.process_data()
-                if n <= 0 and p < m:
-                    self.scenes.append(Records(self.screen, estado = 2))
-                    self.scenes.append(self.ending)
-                elif n > 0 and p < m:
-                    self.scenes.append(Records(self.screen, estado = 1))
-                    self.scenes.append(self.ending)
-                elif n <= 0 and p > m or n <= 0 and m == 0:
-                    self.scenes.append(Records(self.screen, estado = 4))
-                    self.scenes.append(self.ending)
-                elif n > 0 and p > m:
-                    self.scenes.append(Records(self.screen, estado = 3))
-                    self.scenes.append(self.ending)
-            elif self.active_escene >= len(self.scenes):
+
+            self.final_scenes()
+            
+            if self.active_escene >= len(self.scenes):
                 self.active_escene = 0
                 self.data.con.close()
                 self.reset()
