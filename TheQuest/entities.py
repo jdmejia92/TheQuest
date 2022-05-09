@@ -30,21 +30,28 @@ class ProcessData():
         n = self.cur.fetchall()[4][0]
         return n
 
+    #Selecciona el ultimo id generado
     def show_lastid(self):
         self.cur.execute("""SELECT id FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return int(n)
 
+    #Muestra el puntaje obtenido en la partida
     def show_points(self):
         self.cur.execute("""SELECT Puntaje FROM Records ORDER BY id DESC LIMIT 1""")
         n = self.cur.fetchone()[0]
         return n
 
+    #Muestra el puntaje mas bajo de los primeros 5
     def lower_visible_point(self):
-        self.cur.execute("""SELECT Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
-        n = self.cur.fetchall()[4][0]
-        return n
-    
+        try:
+            self.cur.execute("""SELECT Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
+            n = self.cur.fetchall()[4][0]
+            return n
+        except IndexError:
+            return 0
+
+    #Guarde la cantidad de puntos y vidas de la partida
     def player_record(self, life, points):
         self.con = sqlite3.connect("data/Records.db")
         self.cur = self.con.cursor()
@@ -53,14 +60,24 @@ class ProcessData():
 
         self.con.commit()
 
+    #En caso supere alguno de los mejores puntajes, guarda y actualiza las iniciales en la base de datos
     def update(self, id, initials):
         self.cur.execute(f"""UPDATE Records Set Iniciales = '{initials}' WHERE id = {id}""")
 
         self.con.commit()
 
-    def Createdata(self):
+    #En caso la base de datos se haya dañado
+    def createdata(self):
         self.cur.execute("""CREATE TABLE IF NOT EXISTS Records (id INTEGER PRIMARY KEY AUTOINCREMENT, Iniciales TEXT, Puntaje INTEGER, Vidas INTEGER)""")
         
+        self.con.commit()
+
+    #Para borrar el puntaje en caso no haya superado el 5to mas bajo
+    def deleteLowPoints(self, id):
+        records = self.show_records()
+        if len(records) >= 4:
+            self.cur.execute(f"""DELETE FROM Records WHERE id LIKE '%{id}%'""")
+
         self.con.commit()
 
 #Multiples estados de la nave

@@ -1,12 +1,13 @@
-from cgitb import small
 import pygame as pg
 from TheQuest import FPS, levels, BigAsteroids
 from TheQuest.entities import Meteor, Ship, World, ShipStatus, ProcessData
 import os
 import sys
 from enum import Enum
+import random as rd
 
 white = (255, 255, 255)
+black = (0, 0, 0)
 
 class Alternative_Ending(Enum):
     win_NewRecord = 1
@@ -36,8 +37,13 @@ class Scene:
         if self.show:
             press_continue = self.font_press.render(texto, True, white)
             rectexto_press = press_continue.get_rect()
-            self.screen.blit(press_continue, ((self.screen.get_width() - rectexto_press.width)//2,
-                                            (self.screen.get_height() - rectexto_press.h) - 30))
+            centerx = (self.screen.get_width() - rectexto_press.width)//2
+            centery = (self.screen.get_height() - rectexto_press.h) - 30
+            rect = pg.Surface((rectexto_press.w + 10, rectexto_press.h + 10))
+            rect.set_alpha(128)
+            rect.fill((black))
+            self.screen.blit(rect, (centerx - 5, centery - 5))
+            self.screen.blit(press_continue, (centerx, centery))
 
     def bucle_ppal(self) -> bool:
         return
@@ -130,8 +136,13 @@ class History(Scene):
         if self.move_background == False:
             self.press_continue("Presione ESPACIO para continuar")
 
-    def bucle_ppal(self) -> bool:
+    def reset(self):
+        self.current_time = 0
         self.active_background = 0
+        self.move_background = True
+
+    def bucle_ppal(self) -> bool:
+        self.reset()
         while True:
 
             self.clock.tick(FPS)
@@ -159,41 +170,64 @@ class Play(Scene):
     def __init__(self, screen):
         super().__init__(screen)
         self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 16)
+        self.white_back = pg.image.load(os.path.join("./resources/images/input/Fondo_contadores.png")).convert_alpha()
+        self.regular_background = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
+        self.first_background_image = pg.image.load(os.path.join("./resources/images/Background/First_Background.png")).convert_alpha()
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
         self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
         #Lista de niveles
         self.meteors = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
         self.all = pg.sprite.Group()
-
+        self.points = 0
         self.clock.tick(FPS)
 
+        #Listas de meteoros
+        self.BigAsteroids = []
+        self.levels = []
+
         #Lista con el fondo cargado
+        self.first_backgrounds = []
         self.backgrounds = []
+        self.first_level = True
         self.active_background = 0
         self.how_many = 0
         self.animation_time = FPS
 
-        self.load_background()
+        self.load_background(self.regular_background, 0)
+        self.load_background(self.first_background_image, 1)
 
         self.current_time = 0
 
     #Carga del fondo
-    def load_background(self):
-        space = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
-        for colum in range(1600):
-            x = colum + 1
+    def load_background(self, space, code):
+        space_image = space
+        if code == 0:
+            for colum in range(1600):
+                x = colum + 1
 
-            image = pg.Surface((self.screen.get_width(), self.screen.get_height()), pg.SRCALPHA).convert_alpha()
-            image.blit(space, (0,0), (x, 0, self.screen.get_width(), self.screen.get_height()))
+                image = pg.Surface((self.screen.get_width(), self.screen.get_height()), pg.SRCALPHA).convert_alpha()
+                image.blit(space_image, (0,0), (x, 0, self.screen.get_width(), self.screen.get_height()))
 
-            self.backgrounds.append(image)
+                self.backgrounds.append(image)
 
-        self.how_many = len(self.backgrounds)
-        self.background = self.backgrounds[self.active_background]
+            self.how_many = len(self.backgrounds)
+            self.background = self.backgrounds[self.active_background]
+
+        elif code == 1:
+            for colum in range(2000):
+                x = colum + 1
+
+                image = pg.Surface((self.screen.get_width(), self.screen.get_height()), pg.SRCALPHA).convert_alpha()
+                image.blit(space_image, (0,0), (x, 0, self.screen.get_width(), self.screen.get_height()))
+
+                self.first_backgrounds.append(image)
+
+            self.how_many = len(self.first_backgrounds)
+            self.first_background = self.first_backgrounds[self.active_background]       
 
     #Moviemiento del fongo
-    def background_change(self, dt):
+    def background_move(self, dt):
         self.current_time += dt
         if self.ship.ship_status == ShipStatus.travel:
             if self.current_time > self.animation_time:
@@ -201,8 +235,29 @@ class Play(Scene):
                 self.active_background += 1
                 if self.active_background >= len(self.backgrounds):
                     self.active_background = 0
-                
+
                 self.background = self.backgrounds[self.active_background]
+    
+    #Move first background
+    def firstBackground_move(self, dt):
+        self.current_time += dt
+        if self.ship.ship_status == ShipStatus.travel:
+            if self.current_time > self.animation_time:
+                self.current_time = 0
+                self.active_background += 1
+                if self.active_background >= len(self.backgrounds):
+                    self.first_level = False
+
+                self.first_background = self.first_backgrounds[self.active_background]
+
+    #Escoger entre el 1er background y el estandar
+    def chose_background(self):
+        if self.first_level == True:
+            self.firstBackground_move(self.current_time)
+            self.screen.blit(self.first_background, (0,0))
+        elif self.first_level == False:
+            self.background_move(self.current_time)
+            self.screen.blit(self.background, (0,0))
 
     #Reinicio al pasar de nivel
     def reset(self):
@@ -211,18 +266,19 @@ class Play(Scene):
         self.all.empty()
         self.all.add(self.world, self.ship)
         self.ship.reset()
-        self.world.reset()      
+        self.world.reset()
+        self.active_background = 0  
 
     #Creacion de meteoros
     def create_meteors(self, level):
-        for col, fil in levels[level]:
+        for col, fil in self.levels[level]:
             m = Meteor(800 * col, 30 * fil, 1)
             self.meteors.add(m)
         self.all.add(self.meteors)
 
     #Creacion de meteoros grandes
     def create_bigmeteors(self, asteroid):
-        for col, fil in BigAsteroids[asteroid]:
+        for col, fil in self.BigAsteroids[asteroid]:
             m = Meteor(800 * col, 30 * fil, 0)
             self.asteroids.add(m)
         self.all.add(self.asteroids)
@@ -250,6 +306,7 @@ class Play(Scene):
 
     #Contadores en pantalla
     def counters(self, level):
+        self.screen.blit(self.white_back, (3, 5))
         life_text = self.font_counter.render('Contador de vidas: ' + str(self.life_count), True, white)
         level_text = self.font_counter.render('Level: ' + str(level + 1), True, white)
         points = self.font_counter.render('Puntos: ' + str(self.points), True, white)
@@ -270,16 +327,48 @@ class Play(Scene):
         if self.ship.rect.right >= self.screen.get_width():
             self.press_continue("Presione ESPACIO para continuar")
 
+    #Crear lista de niveles
+    def create_levels(self):
+        for i in range(2):
+            x_a = []
+            for i in range(5):
+                n = rd.uniform(1,14)
+                x_a.append(n)
+            y_a = []
+            for i in range(5):
+                m = rd.uniform(0,23)
+                y_a.append(m)
+            asteroid = list(zip(x_a, y_a))
+            self.BigAsteroids.append(asteroid)
+
+        for i in range(2):
+            x = []
+            for i in range(5):
+                n = rd.uniform(1,14)
+                x.append(n)
+            y = []
+            for i in range(5):
+                m = rd.uniform(0,23)
+                y.append(m)
+            level = list(zip(x, y))
+            self.levels.append(level)
+
     #Juego
     def bucle_ppal(self) -> bool:
-        #Contadores
+        #Listas para niveles distintos en cada vuelta
+        self.BigAsteroids = []
+        self.levels = []
+        #Constadores
         level = 0
         asteroid = 0
         self.life_count = 3
         self.points = 0
+        #Resetear y creacion de niveles
+        self.first_level = True
+        self.create_levels()
         self.reset()
 
-        while self.life_count > 0 and asteroid < len(BigAsteroids):
+        while self.life_count > 0 and asteroid < len(self.BigAsteroids):
             self.create_meteors(level)
             self.create_bigmeteors(asteroid)
             
@@ -295,7 +384,7 @@ class Play(Scene):
                     if self.ship.ship_status == ShipStatus.explode:
                         return False
 
-                self.background_change(self.current_time)
+                self.chose_background()
 
                 self.all.update()
 
@@ -306,8 +395,6 @@ class Play(Scene):
                 self.points += small[0] + big[0]
 
                 self.game_over()
-
-                self.screen.blit(self.background, (0,0))
 
                 self.all.draw(self.screen)
 
@@ -341,7 +428,7 @@ class Play(Scene):
                     if self.ship.rotation == 181:
                         self.ship.ship_status = ShipStatus.landing
 
-                self.background_change(self.current_time)
+                self.background_move(self.current_time)
 
                 self.screen.blit(self.background, (0,0))
 
@@ -357,7 +444,7 @@ class Play(Scene):
             asteroid += 1
             self.reset()
 
-        self.data.Createdata()
+        self.data.createdata()
         self.data.player_record(points = self.points, life = self.life_count)
         return True
 
@@ -456,9 +543,8 @@ class Ending(Scene):
         self.positiony = 0
         records = self.data.show_records()
         for name, points in records:
-            if name == None:
-                name = "###"
-
+            if name == "" or name == None:
+                name = "###"                
             self.positiony += 75
             record_name = self.font_records.render(str(name), True, white)
             record_points = self.font_records.render(str(points), True, white)
@@ -472,8 +558,15 @@ class Ending(Scene):
         if self.show_count >= 2500:
             return True
 
+    def deleteLowerPoint(self):
+        point_play = self.data.show_points()
+        fifth_point = self.data.lower_visible_point()
+        if point_play <= fifth_point:
+            id = self.data.show_lastid()
+            self.data.deleteLowPoints(id)
+
     def bucle_ppal(self) -> bool:
-       while True:
+        while True:
             self.clock.tick(FPS)
 
             self.current_time = pg.time.get_ticks()
@@ -487,6 +580,8 @@ class Ending(Scene):
                     return True
             
             self.screen.blit(self.ending, (0, 0))
+
+            self.deleteLowerPoint()
 
             self.show_records()
 
