@@ -87,6 +87,8 @@ class ShipStatus(Enum):
     lunch = 3
     explode = 4
     landing = 5
+    takeoff = 6
+    deploy = 7
 
 #Nave
 class Ship(pg.sprite.Sprite):
@@ -106,7 +108,9 @@ class Ship(pg.sprite.Sprite):
         self.rotation = 0
         self.angle = 0
         self.landing = 0
-        self.ship_status = ShipStatus.travel
+        self.lunch = 0
+        self.view = 0
+        self.ship_status = ShipStatus.lunch
 
     def update(self):
         #Animacion cuando la nave llega al mundo
@@ -129,8 +133,8 @@ class Ship(pg.sprite.Sprite):
 
                 self.rotation += 1
                 self.image_rotate = self.image
-                self.width = self.image.get_rect().width
-                self.height = self.image.get_rect().height
+                self.width = self.rect.width
+                self.height = self.rect.height
 
         #La nave se pone mas pequena al acercarse al mundo
         elif self.ship_status == ShipStatus.landing:
@@ -169,8 +173,41 @@ class Ship(pg.sprite.Sprite):
             if self.rect.bottom >= self.screen.get_height():
                 self.rect.bottom = self.screen.get_height()
 
+        #Cuando la nave arranca desde el mundo
+        elif self.ship_status == ShipStatus.lunch:
+            self.image = pg.transform.smoothscale(self.image_ship, (12.5, 5))
+            self.rect = self.image.get_rect(x = 1, y = self.screen.get_height()//2)
+            self.widthB = self.rect.w
+            self.heightB = self.rect.h
+            if self.view == 30:
+                self.ship_status = ShipStatus.takeoff
+            self.view += 1
+
+            self.small_ship = self.image
+            self.small_rect = self.rect
+
+        #Sale del mundo
+        elif self.ship_status == ShipStatus.takeoff:           
+            if self.rect.centerx <= self.screen.get_width()//2:
+                self.rect.centerx += 2
+                if self.rect.centerx % 10 == 9 or self.rect.centerx % 10 == 5:
+                    if self.lunch <= 55:
+                        self.image = pg.transform.smoothscale(self.image_ship, (self.widthB, self.heightB))
+                        self.rect = self.image.get_rect(center = self.rect.center)
+                        self.widthB += 2.5
+                        self.heightB += 1
+                    self.lunch += 1
+            elif self.rect.centerx >= self.screen.get_width()//2:
+                self.ship_status = ShipStatus.deploy
+
+        #Se coloca en posicion para empezar el juego
+        elif self.ship_status == ShipStatus.deploy:
+            self.rect.centerx -= 3
+            if self.rect.centerx <= 80:
+                self.ship_status = ShipStatus.travel
+
     def reset(self):
-        self.ship_status = ShipStatus.travel
+        self.ship_status = ShipStatus.lunch
         self.speedy = self.ini_speedy
         self.arrive_speed = 2
         self.image = self.image_ship
@@ -179,6 +216,8 @@ class Ship(pg.sprite.Sprite):
         self.angle = 0
         self.rotation = 0
         self.landing = 0
+        self.view = 0
+        self.lunch = 0
 
 #Meteoros y Asteroides
 class Meteor(pg.sprite.Sprite):
@@ -198,10 +237,10 @@ class Meteor(pg.sprite.Sprite):
 
     #Velocidad de los meteoros y asteroides
     def update(self):
-        if self.size == 1:
-            self.rect.x -= self.vx
-        elif self.size == 0:
-            self.rect.x -= self.vx_big
+            if self.size == 1:
+                self.rect.x -= self.vx
+            elif self.size == 0:
+                self.rect.x -= self.vx_big
 
     def pass_meteor(self):
         if self.rect.centerx <= -50:
@@ -231,7 +270,3 @@ class World(pg.sprite.Sprite):
     def reset(self):
         self.rect.centerx = self.centrox
         self.vx = self.ini_vx
-
-
-    
-

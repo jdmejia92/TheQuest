@@ -178,6 +178,7 @@ class Play(Scene):
         #Lista de niveles
         self.meteors = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
+        self.obstacles = pg.sprite.Group()
         self.all = pg.sprite.Group()
         self.points = 0
         self.clock.tick(FPS)
@@ -194,8 +195,8 @@ class Play(Scene):
         self.how_many = 0
         self.animation_time = FPS
 
-        self.load_background(self.regular_background, 0)
         self.load_background(self.first_background_image, 1)
+        self.load_background(self.regular_background, 0)
 
         self.current_time = 0
 
@@ -229,7 +230,7 @@ class Play(Scene):
     #Moviemiento del fongo
     def background_move(self, dt):
         self.current_time += dt
-        if self.ship.ship_status == ShipStatus.travel:
+        if self.ship.ship_status == ShipStatus.travel or self.ship.ship_status == ShipStatus.takeoff or self.ship.ship_status == ShipStatus.deploy or self.ship.ship_status == ShipStatus.lunch:
             if self.current_time > self.animation_time:
                 self.current_time = 0
                 self.active_background += 1
@@ -241,7 +242,7 @@ class Play(Scene):
     #Move first background
     def firstBackground_move(self, dt):
         self.current_time += dt
-        if self.ship.ship_status == ShipStatus.travel:
+        if self.ship.ship_status == ShipStatus.travel or self.ship.ship_status == ShipStatus.takeoff or self.ship.ship_status == ShipStatus.deploy:
             if self.current_time > self.animation_time:
                 self.current_time = 0
                 self.active_background += 1
@@ -263,25 +264,25 @@ class Play(Scene):
     def reset(self):
         self.meteors.empty()
         self.asteroids.empty()
+        self.obstacles.empty()
         self.all.empty()
         self.all.add(self.world, self.ship)
         self.ship.reset()
-        self.world.reset()
-        self.active_background = 0  
+        self.world.reset()  
 
     #Creacion de meteoros
     def create_meteors(self, level):
         for col, fil in self.levels[level]:
             m = Meteor(800 * col, 30 * fil, 1)
             self.meteors.add(m)
-        self.all.add(self.meteors)
+        self.obstacles.add(self.meteors)
 
     #Creacion de meteoros grandes
     def create_bigmeteors(self, asteroid):
         for col, fil in self.BigAsteroids[asteroid]:
             m = Meteor(800 * col, 30 * fil, 0)
             self.asteroids.add(m)
-        self.all.add(self.asteroids)
+        self.obstacles.add(self.asteroids)
     
     #Eliminacion de meteoros
     def eliminate_meteors(self, rock, number):
@@ -290,7 +291,7 @@ class Play(Scene):
         for i in rock:
             if i.pass_meteor():
                 rock.remove(i)
-                self.all.remove(i)
+                self.obstacles.remove(i)
                 if number == 1:
                     points += 1
                 elif number == 2:
@@ -332,11 +333,11 @@ class Play(Scene):
         for i in range(2):
             x_a = []
             for i in range(5):
-                n = rd.uniform(1,14)
+                n = rd.uniform(2,5)
                 x_a.append(n)
             y_a = []
             for i in range(5):
-                m = rd.uniform(0,23)
+                m = rd.uniform(0,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
             self.BigAsteroids.append(asteroid)
@@ -344,11 +345,11 @@ class Play(Scene):
         for i in range(2):
             x = []
             for i in range(5):
-                n = rd.uniform(1,14)
+                n = rd.uniform(2,5)
                 x.append(n)
             y = []
             for i in range(5):
-                m = rd.uniform(0,23)
+                m = rd.uniform(0,20)
                 y.append(m)
             level = list(zip(x, y))
             self.levels.append(level)
@@ -365,6 +366,7 @@ class Play(Scene):
         self.points = 0
         #Resetear y creacion de niveles
         self.first_level = True
+        self.active_background = 0
         self.create_levels()
         self.reset()
 
@@ -386,6 +388,9 @@ class Play(Scene):
 
                 self.chose_background()
 
+                if self.ship.ship_status == ShipStatus.travel:
+                    self.obstacles.update()
+
                 self.all.update()
 
                 small = self.eliminate_meteors(self.meteors, 1)
@@ -397,6 +402,7 @@ class Play(Scene):
                 self.game_over()
 
                 self.all.draw(self.screen)
+                self.obstacles.draw(self.screen)
 
                 self.counters(level)
 
