@@ -1,6 +1,6 @@
 import pygame as pg
 from TheQuest import FPS, levels, BigAsteroids
-from TheQuest.entities import Meteor, Ship, World, ShipStatus, ProcessData
+from TheQuest.entities import Explosion, Meteor, Ship, World, ShipStatus, ProcessData
 import os
 import sys
 from enum import Enum
@@ -181,6 +181,7 @@ class Play(Scene):
         self.obstacles = pg.sprite.Group()
         self.all = pg.sprite.Group()
         self.points = 0
+        self.count = 0
         self.clock.tick(FPS)
 
         #Listas de meteoros
@@ -192,7 +193,6 @@ class Play(Scene):
         self.backgrounds = []
         self.first_level = True
         self.active_background = 0
-        self.how_many = 0
         self.animation_time = FPS
 
         self.load_background(self.first_background_image, 1)
@@ -212,7 +212,6 @@ class Play(Scene):
 
                 self.backgrounds.append(image)
 
-            self.how_many = len(self.backgrounds)
             self.background = self.backgrounds[self.active_background]
 
         elif code == 1:
@@ -224,7 +223,6 @@ class Play(Scene):
 
                 self.first_backgrounds.append(image)
 
-            self.how_many = len(self.first_backgrounds)
             self.first_background = self.first_backgrounds[self.active_background]       
 
     #Moviemiento del fongo
@@ -242,7 +240,7 @@ class Play(Scene):
     #Move first background
     def firstBackground_move(self, dt):
         self.current_time += dt
-        if self.ship.ship_status == ShipStatus.travel or self.ship.ship_status == ShipStatus.takeoff or self.ship.ship_status == ShipStatus.deploy:
+        if self.ship.ship_status == ShipStatus.travel or self.ship.ship_status == ShipStatus.takeoff or self.ship.ship_status == ShipStatus.deploy or self.ship.ship_status == ShipStatus.lunch:
             if self.current_time > self.animation_time:
                 self.current_time = 0
                 self.active_background += 1
@@ -285,25 +283,35 @@ class Play(Scene):
         self.obstacles.add(self.asteroids)
     
     #Eliminacion de meteoros
-    def eliminate_meteors(self, rock, number):
-        points = 0
-        life = 0
-        for i in rock:
-            if i.pass_meteor():
-                rock.remove(i)
-                self.obstacles.remove(i)
+    def eliminate_meteors(self, group_rock, number):
+        for rock in group_rock:
+            if rock.pass_meteor():
+                group_rock.remove(rock)
+                self.obstacles.remove(rock)
                 if number == 1:
-                    points += 1
+                    self.points += 1
                 elif number == 2:
-                    points += 2
+                    self.points += 2
 
-            if pg.sprite.spritecollide(self.ship, rock, True) and self.ship.ship_status == ShipStatus.travel:
-                if number == 1:
-                    life += 1
-                elif number == 2:
-                    life += 2
+            if self.ship.ship_status == ShipStatus.travel:
+                hits = pg.sprite.spritecollide(self.ship, group_rock, True)
+                for hit in hits:
+                    if number == 1:
+                        explosion = Explosion(hit.rect.center, 'Small')
+                        self.all.add(explosion)
+                        self.life_count -= 1
+                    elif number == 2:
+                        explosion = Explosion(hit.rect.center, 'Big')
+                        self.all.add(explosion)
+                        self.life_count -= 2
 
-        return points, life
+            if self.ship.ship_status == ShipStatus.explode:
+                self.count += 1
+                explosion = Explosion(self.ship.rect.center, 'Ship')
+                self.all.add(explosion)
+                if self.count == 400:
+                    self.life_count -= 5
+                print(self.count)
 
     #Contadores en pantalla
     def counters(self, level):
@@ -315,11 +323,8 @@ class Play(Scene):
         self.screen.blit(level_text, (10, 28))
         self.screen.blit(points, (10, 45))
 
-    #Activar llegar al mundo o que la nave explote
-    def game_over(self):
-        if self.life_count <= 0:
-            self.ship.ship_status = ShipStatus.explode                 
-        
+    #Activar llegar al mundo al culminar los asteroides
+    def next_level(self):
         if len(self.asteroids) == 0:
             self.world.status_arrive = True
 
@@ -330,26 +335,26 @@ class Play(Scene):
 
     #Crear lista de niveles
     def create_levels(self):
-        for i in range(2):
+        for i in range(3):
             x_a = []
-            for i in range(5):
-                n = rd.uniform(2,5)
+            for i in range(10):
+                n = rd.uniform(1.5,15)
                 x_a.append(n)
             y_a = []
-            for i in range(5):
-                m = rd.uniform(0,20)
+            for i in range(10):
+                m = rd.uniform(1,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
             self.BigAsteroids.append(asteroid)
 
-        for i in range(2):
+        for i in range(3):
             x = []
-            for i in range(5):
-                n = rd.uniform(2,5)
+            for i in range(10):
+                n = rd.uniform(1.5,15)
                 x.append(n)
             y = []
-            for i in range(5):
-                m = rd.uniform(0,20)
+            for i in range(10):
+                m = rd.uniform(1,20)
                 y.append(m)
             level = list(zip(x, y))
             self.levels.append(level)
@@ -370,11 +375,11 @@ class Play(Scene):
         self.create_levels()
         self.reset()
 
-        while self.life_count > 0 and asteroid < len(self.BigAsteroids):
+        while self.life_count > -2 and asteroid < len(self.BigAsteroids):
             self.create_meteors(level)
             self.create_bigmeteors(asteroid)
             
-            while self.life_count > 0 and len(self.asteroids) > 0:
+            while self.life_count > -2 and len(self.asteroids) > 0:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
 
@@ -383,23 +388,20 @@ class Play(Scene):
                         pg.quit()
                         sys.exit()
 
-                    if self.ship.ship_status == ShipStatus.explode:
-                        return False
-
                 self.chose_background()
 
                 if self.ship.ship_status == ShipStatus.travel:
                     self.obstacles.update()
 
+                if self.life_count <= 0:
+                    self.ship.ship_status = ShipStatus.explode
+
                 self.all.update()
 
-                small = self.eliminate_meteors(self.meteors, 1)
-                big = self.eliminate_meteors(self.asteroids, 2)
+                self.eliminate_meteors(self.meteors, 1)
+                self.eliminate_meteors(self.asteroids, 2)
 
-                self.life_count -= small[1] + big[1]
-                self.points += small[0] + big[0]
-
-                self.game_over()
+                self.next_level()
 
                 self.all.draw(self.screen)
                 self.obstacles.draw(self.screen)

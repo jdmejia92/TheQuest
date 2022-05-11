@@ -1,4 +1,5 @@
 import pygame as pg
+from TheQuest import FPS
 from enum import Enum
 import os
 import sqlite3
@@ -155,7 +156,7 @@ class Ship(pg.sprite.Sprite):
                     self.landing += 1
 
         #Cuando la nave se encuentra en movimiento
-        elif self.ship_status == ShipStatus.travel:               
+        elif self.ship_status == ShipStatus.travel:
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
                 self.rect.y -= self.speedy
@@ -204,7 +205,11 @@ class Ship(pg.sprite.Sprite):
         elif self.ship_status == ShipStatus.deploy:
             self.rect.centerx -= 3
             if self.rect.centerx <= 80:
-                self.ship_status = ShipStatus.travel
+                self.ship_status = ShipStatus.travel   
+
+        #Cuando la nave explota
+        elif self.ship_status == ShipStatus.explode:
+            self.kill()
 
     def reset(self):
         self.ship_status = ShipStatus.lunch
@@ -270,3 +275,41 @@ class World(pg.sprite.Sprite):
     def reset(self):
         self.rect.centerx = self.centrox
         self.vx = self.ini_vx
+
+
+class Explosion(pg.sprite.Sprite):
+    def __init__(self, center, size):
+        super().__init__()
+        self.size = size
+        self.explosion_anim = {}
+        self.explosion_anim['Big'] = []
+        self.explosion_anim['Small'] = []
+        self.explosion_anim['Ship'] = []
+        #Cargar las explosiones pequeñas y grandes
+        for i in range(14):
+            explosion = pg.image.load(os.path.join(f"./resources/images/Explosion/Explosion{i}.png")).convert_alpha()
+            self.explosion_anim['Big'].append(explosion)
+            small_explosion = pg.transform.scale(explosion, (60, 60))
+            self.explosion_anim['Small'].append(small_explosion)
+            ship_explosion = pg.transform.scale(explosion, (150, 150))
+            self.explosion_anim['Ship'].append(ship_explosion)
+
+        self.image = self.explosion_anim[self.size][0]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.active_explosion = 0
+        self.animation_time = FPS
+        self.current_time = pg.time.get_ticks()
+
+    def update(self):
+        now = pg.time.get_ticks()
+        if now - self.current_time > self.animation_time:
+            self.current_time = 0
+            self.active_explosion += 1
+            if self.active_explosion >= len(self.explosion_anim[self.size]):
+                self.kill()
+            else:
+                center = self.rect.center
+                self.image = self.explosion_anim[self.size][self.active_explosion]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
