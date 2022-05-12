@@ -313,7 +313,6 @@ class Play(Scene):
                 self.count += 1
                 if self.count == 2000:
                     self.life_count -= 5
-                print(self.count)
 
     #Contadores en pantalla
     def counters(self, level):
@@ -339,11 +338,11 @@ class Play(Scene):
     def create_levels(self):
         for i in range(3):
             x_a = []
-            for i in range(10):
-                n = rd.uniform(1.5,15)
+            for i in range(20):
+                n = rd.uniform(1.1,10)
                 x_a.append(n)
             y_a = []
-            for i in range(10):
+            for i in range(20):
                 m = rd.uniform(1,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
@@ -351,11 +350,11 @@ class Play(Scene):
 
         for i in range(3):
             x = []
-            for i in range(10):
-                n = rd.uniform(1.5,15)
+            for i in range(20):
+                n = rd.uniform(1.1,10)
                 x.append(n)
             y = []
-            for i in range(10):
+            for i in range(20):
                 m = rd.uniform(1,20)
                 y.append(m)
             level = list(zip(x, y))
