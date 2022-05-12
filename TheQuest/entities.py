@@ -286,8 +286,8 @@ class Explosion(pg.sprite.Sprite):
         self.explosion_anim['Small'] = []
         self.explosion_anim['Ship'] = []
         #Cargar las explosiones pequeñas y grandes
-        for i in range(14):
-            explosion = pg.image.load(os.path.join(f"./resources/images/Explosion/Explosion{i}.png")).convert_alpha()
+        for i in range(71):
+            explosion = pg.image.load(os.path.join(f"./resources/images/Explosion/ExplosionLarga/Explosion{i}.png")).convert_alpha()
             self.explosion_anim['Big'].append(explosion)
             small_explosion = pg.transform.scale(explosion, (60, 60))
             self.explosion_anim['Small'].append(small_explosion)

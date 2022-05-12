@@ -266,7 +266,8 @@ class Play(Scene):
         self.all.empty()
         self.all.add(self.world, self.ship)
         self.ship.reset()
-        self.world.reset()  
+        self.world.reset()
+        self.count = 0
 
     #Creacion de meteoros
     def create_meteors(self, level):
@@ -283,33 +284,34 @@ class Play(Scene):
         self.obstacles.add(self.asteroids)
     
     #Eliminacion de meteoros
-    def eliminate_meteors(self, group_rock, number):
+    def eliminate_meteors(self, group_rock):
         for rock in group_rock:
             if rock.pass_meteor():
                 group_rock.remove(rock)
                 self.obstacles.remove(rock)
-                if number == 1:
+                if group_rock == self.meteors:
                     self.points += 1
-                elif number == 2:
+                elif group_rock == self.asteroids:
                     self.points += 2
 
             if self.ship.ship_status == ShipStatus.travel:
                 hits = pg.sprite.spritecollide(self.ship, group_rock, True)
                 for hit in hits:
-                    if number == 1:
+                    if group_rock == self.meteors:
                         explosion = Explosion(hit.rect.center, 'Small')
                         self.all.add(explosion)
                         self.life_count -= 1
-                    elif number == 2:
+                    elif group_rock == self.asteroids:
                         explosion = Explosion(hit.rect.center, 'Big')
                         self.all.add(explosion)
                         self.life_count -= 2
 
-            if self.ship.ship_status == ShipStatus.explode:
+            if self.life_count <= 0:
+                if pg.sprite.collide_rect(self.ship, rock):
+                    explosion = Explosion(self.ship.rect.center, 'Ship')
+                    self.all.add(explosion)
                 self.count += 1
-                explosion = Explosion(self.ship.rect.center, 'Ship')
-                self.all.add(explosion)
-                if self.count == 400:
+                if self.count == 2000:
                     self.life_count -= 5
                 print(self.count)
 
@@ -398,8 +400,8 @@ class Play(Scene):
 
                 self.all.update()
 
-                self.eliminate_meteors(self.meteors, 1)
-                self.eliminate_meteors(self.asteroids, 2)
+                self.eliminate_meteors(self.meteors)
+                self.eliminate_meteors(self.asteroids)
 
                 self.next_level()
 
