@@ -174,8 +174,12 @@ class Play(Scene):
         self.regular_background = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
         self.first_background_image = pg.image.load(os.path.join("./resources/images/Background/First_Background.png")).convert_alpha()
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
-        self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2)
+        self.world_start = World(self.screen, -400, self.screen.get_height()//2, "Start")
+        self.midle_world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2, "Midle")
+        self.midle_world_lunch = World(self.screen, -400, self.screen.get_height()//2, "Midle_lunch")
+        self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2, "End")
         #Lista de niveles
+        self.worlds = pg.sprite.Group()
         self.meteors = pg.sprite.Group()
         self.asteroids = pg.sprite.Group()
         self.obstacles = pg.sprite.Group()
@@ -250,7 +254,7 @@ class Play(Scene):
                 self.first_background = self.first_backgrounds[self.active_background]
 
     #Escoger entre el 1er background y el estandar
-    def chose_background(self):
+    def choose_background(self):
         if self.first_level == True:
             self.firstBackground_move(self.current_time)
             self.screen.blit(self.first_background, (0,0))
@@ -258,15 +262,28 @@ class Play(Scene):
             self.background_move(self.current_time)
             self.screen.blit(self.background, (0,0))
 
+    def choose_world(self, level):
+        if level == 0:
+            self.worlds.add(self.world_start, self.midle_world)
+        elif level > 0 and level < len(self.BigAsteroids)-1:
+            self.worlds.add(self.midle_world_lunch, self.midle_world)
+        elif level == len(self.BigAsteroids)-1:
+            self.midle_world.kill()
+            self.worlds.add(self.midle_world_lunch, self.world)
+
     #Reinicio al pasar de nivel
     def reset(self):
         self.meteors.empty()
         self.asteroids.empty()
         self.obstacles.empty()
+        self.worlds.empty()
         self.all.empty()
-        self.all.add(self.world, self.ship)
+        self.choose_world(self.asteroid)
+        self.all.add(self.worlds, self.ship)
         self.ship.reset()
-        self.world.reset()
+        worlds = self.worlds
+        for world in worlds:
+            world.reset()
         self.count = 0
 
     #Creacion de meteoros
@@ -325,9 +342,28 @@ class Play(Scene):
         self.screen.blit(points, (10, 45))
 
     #Activar llegar al mundo al culminar los asteroides
-    def next_level(self):
-        if len(self.asteroids) == 0:
+    def world_arrive(self):
+        if len(self.asteroids) <= 0 and self.asteroid < len(self.BigAsteroids) - 1:
+            self.midle_world.status_arrive = True
+        elif len(self.asteroids) <= 0 and self.asteroid == len(self.BigAsteroids) - 1:
             self.world.status_arrive = True
+
+    #Acciones a la llegada a un nuevo mundo
+    def worlds_accions(self):
+        if self.midle_world.rect.centerx == 1272 or self.world.rect.centerx == 1272:
+            self.points += 5
+
+        if len(self.asteroids) <= 0 and self.asteroid < len(self.BigAsteroids) - 1:
+            if self.midle_world.rect.centerx <= self.screen.get_width() + 500:
+                self.ship.ship_status = ShipStatus.arrive
+                if self.ship.rotation == 181:
+                    self.ship.ship_status = ShipStatus.landing
+        elif len(self.asteroids) <= 0 and self.asteroid == len(self.BigAsteroids) - 1:
+            if self.world.rect.centerx <= self.screen.get_width() + 450:
+                self.ship.ship_status = ShipStatus.arrive
+                if self.ship.rotation == 181:
+                    self.ship.ship_status = ShipStatus.landing
+            
 
     #Letrero de pasar a la siguiente escena
     def press_nextscene(self):
@@ -338,11 +374,11 @@ class Play(Scene):
     def create_levels(self):
         for i in range(3):
             x_a = []
-            for i in range(20):
-                n = rd.uniform(1.1,10)
+            for i in range(3):
+                n = rd.uniform(1.1,2)
                 x_a.append(n)
             y_a = []
-            for i in range(20):
+            for i in range(3):
                 m = rd.uniform(1,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
@@ -350,11 +386,11 @@ class Play(Scene):
 
         for i in range(3):
             x = []
-            for i in range(20):
-                n = rd.uniform(1.1,10)
+            for i in range(4):
+                n = rd.uniform(1.1,2)
                 x.append(n)
             y = []
-            for i in range(20):
+            for i in range(4):
                 m = rd.uniform(1,20)
                 y.append(m)
             level = list(zip(x, y))
@@ -367,7 +403,7 @@ class Play(Scene):
         self.levels = []
         #Constadores
         level = 0
-        asteroid = 0
+        self.asteroid = 0
         self.life_count = 3
         self.points = 0
         #Resetear y creacion de niveles
@@ -376,9 +412,9 @@ class Play(Scene):
         self.create_levels()
         self.reset()
 
-        while self.life_count > -2 and asteroid < len(self.BigAsteroids):
+        while self.life_count > -2 and self.asteroid < len(self.BigAsteroids):
             self.create_meteors(level)
-            self.create_bigmeteors(asteroid)
+            self.create_bigmeteors(self.asteroid)
             
             while self.life_count > -2 and len(self.asteroids) > 0:
                 self.clock.tick(FPS)
@@ -389,8 +425,8 @@ class Play(Scene):
                         pg.quit()
                         sys.exit()
 
-                self.chose_background()
-
+                self.choose_background()
+                
                 if self.ship.ship_status == ShipStatus.travel:
                     self.obstacles.update()
 
@@ -402,7 +438,7 @@ class Play(Scene):
                 self.eliminate_meteors(self.meteors)
                 self.eliminate_meteors(self.asteroids)
 
-                self.next_level()
+                self.world_arrive()
 
                 self.all.draw(self.screen)
                 self.obstacles.draw(self.screen)
@@ -412,8 +448,7 @@ class Play(Scene):
                 pg.display.flip()
 
             #Bucle cuando llega al mundo
-            while self.world.status_arrive == True:
-                points_arrive = 0
+            while self.midle_world.status_arrive == True or self.world.status_arrive == True:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
 
@@ -424,18 +459,11 @@ class Play(Scene):
 
                     if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                         self.world.status_arrive = False
+                        self.midle_world.status_arrive = False
 
                 self.all.update()
 
-                if self.world.rect.centerx == 1260:
-                    points_arrive += 5
-                
-                self.points += points_arrive
-
-                if self.world.rect.centerx <= self.screen.get_width() + 450:
-                    self.ship.ship_status = ShipStatus.arrive
-                    if self.ship.rotation == 181:
-                        self.ship.ship_status = ShipStatus.landing
+                self.worlds_accions()
 
                 self.background_move(self.current_time)
 
@@ -450,7 +478,7 @@ class Play(Scene):
                 pg.display.flip()
 
             level += 1
-            asteroid += 1
+            self.asteroid += 1
             self.reset()
 
         self.data.createdata()

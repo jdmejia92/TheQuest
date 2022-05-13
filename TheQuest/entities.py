@@ -50,7 +50,7 @@ class ProcessData():
             n = self.cur.fetchall()[4][0]
             return n
         except IndexError:
-            return 0
+            0
 
     #Guarde la cantidad de puntos y vidas de la partida
     def player_record(self, life, points):
@@ -127,9 +127,9 @@ class Ship(pg.sprite.Sprite):
             
             #Rotacion de la nave
             if self.arrive_speed == 0:
-                if self.rotation <= 180:
+                if self.rotation <= 181:
                     self.image = pg.transform.rotate(self.image_ship, self.angle)
-                    self.angle += 1 % 180
+                    self.angle += 1
                     self.rect = self.image.get_rect(center=self.rect.center)
 
                 self.rotation += 1
@@ -139,7 +139,7 @@ class Ship(pg.sprite.Sprite):
 
         #La nave se pone mas pequena al acercarse al mundo
         elif self.ship_status == ShipStatus.landing:
-            if self.rotation >= 180 and self.rect.right < self.screen.get_width():
+            if self.rotation >= 181 and self.rect.right < self.screen.get_width():
                 self.arrive_speed = 2
                 self.rect.centerx += self.arrive_speed
                 if self.rect.right >= self.screen.get_width():
@@ -254,28 +254,46 @@ class Meteor(pg.sprite.Sprite):
         return False 
 
 class World(pg.sprite.Sprite):
-    def __init__(self, screen, cent_x, cent_y):
+    def __init__(self, screen, cent_x, cent_y, level):
         super().__init__()
         self.screen = screen
         self.centrox = cent_x
         self.x_ini = self.centrox
         self.y_ini = cent_y
-        self.image = pg.image.load(os.path.join("resources/images/Worlds/New_World_level.png")).convert_alpha()
-        self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
-        self.ini_vx = 5
+        self.level = level
+        if self.level == "Start":
+            self.image = pg.image.load(os.path.join("resources/images/Worlds/Red_World.png")).convert_alpha()
+            self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
+        elif self.level == "Midle":
+            self.image = pg.image.load(os.path.join("resources/images/Worlds/Midle_World.png")).convert_alpha()
+            self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
+        elif self.level == "Midle_lunch":
+            self.image = pg.image.load(os.path.join("resources/images/Worlds/Midle_World.png")).convert_alpha()
+            self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
+        elif self.level == "End":
+            self.image = pg.image.load(os.path.join("resources/images/Worlds/New_World.png")).convert_alpha()
+            self.rect = self.image.get_rect(centerx = self.x_ini, centery = self.y_ini)
+        self.ini_vx = 3
         self.vx = self.ini_vx
+        self.kill_count = 0
         self.status_arrive = False
 
     def update(self):
-        if self.status_arrive == True:
+        if self.level == "Start" or self.level == "Midle_lunch":
             self.rect.centerx -= self.vx
-            if self.rect.centerx <= self.screen.get_width() + 450:
+            if self.rect.centerx <= -1400:
                 self.vx = 0
+                self.kill()
+
+        elif self.level == "Midle" or self.level == "End":
+            if self.status_arrive == True:
+                self.rect.centerx -= self.vx
+                if self.rect.centerx <= self.screen.get_width() + 450:
+                    self.vx = 0
 
     def reset(self):
         self.rect.centerx = self.centrox
         self.vx = self.ini_vx
-
 
 class Explosion(pg.sprite.Sprite):
     def __init__(self, center, size):

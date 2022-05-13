@@ -27,6 +27,8 @@ class Game:
             n = ProcessData().show_life()
             p = ProcessData().show_points()
             m = ProcessData().lower_visible_point()
+            print(m)
+            print(p)
             if n <= 0 and p <= m:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NoRecord))
                 self.scenes.append(self.ending)

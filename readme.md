@@ -4,7 +4,7 @@
 Es un juego creado con el lenguaje: 
 - **Python**
 
-Y con la libreria:
+Y con la librería:
 - **Pygame**
 
 ***
@@ -15,7 +15,7 @@ Y con la libreria:
 ### Mediante un archivo ZIP
 ***
 
-1. Descarga el archivo ZIP desde el repositorio, con el boton verde **Code** 
+1. Descarga el archivo ZIP desde el repositorio, con el botón verde **Code** 
 
 2. Descomprímelo y guárdalo en una carpeta en el escritorio.
 
@@ -30,18 +30,18 @@ pip install -r requirements.txt
 
 ***
 
-### Mediante la funcion Git Clone
+### Mediante la función Git Clone
 ***
 
-1. Copia el **URL** desde la seccion **HTTPS** 
+1. Copia el **URL** desde la sección **HTTPS** 
 
 2. Ingresa a tu IDE preferido _(VSCode, VIM, etc.)
 
-3. Abre la consola y ejecuta la funcion [git clone](https://support.atlassian.com/bitbucket-cloud/docs/clone-a-git-repository/) 
+3. Abre la consola y ejecuta la función [git clone](https://support.atlassian.com/bitbucket-cloud/docs/clone-a-git-repository/) 
 ```cmd
 git clone "URL"
 ```
-4. Instala lo necesario para ejecutar el juego desde el fichero **requirements.txt** con la funsion [pip](https://pip.pypa.io/en/stable/).
+4. Instala lo necesario para ejecutar el juego desde el fichero **requirements.txt** con la función [pip](https://pip.pypa.io/en/stable/).
 ```cmd
 pip install -r requirements.txt
 ```
@@ -54,24 +54,24 @@ pip install -r requirements.txt
 ## Los controles son los siguientes:
 ***
 
-Para mover la nave a traves de los niveles:
+Para mover la nave a través de los niveles:
 - Flecha hacia arriba **UP**, para desplazarse hacia arriba.
 - Flecha hacia abajo **DOWN**, para desplazarse hacia abajo.
-- Para acelerar debes presionar la tecla **Shift Izquierdo** en conjunto con la flecha de la direccion en la que deseas desplazarte.
+- Para acelerar debes presionar la tecla **Shift Izquierdo** en conjunto con la flecha de la dirección en la que deseas desplazarte.
 ***
 ***
 ## Las reglas del juego
 ***
-- Al esquivar un meteoro, y que este llegue al limite izquierdo de la pantalla, se ganara 1 punto, por los pequeños, y 2 puntos por los grandes.
+- Al esquivar un meteoro, y que este llegue al límite izquierdo de la pantalla, se ganara 1 punto, por los pequeños, y 2 puntos por los grandes.
 - Al llegar al mundo al final de cada nivel, recibes 5 puntos adicionales.
-- Al chocar con un meteoro pequeño, perderas 1 vida y al chocar con uno grande perderas 2 vidas.
+- Al chocar con un meteoro pequeño, perderás 1 vida y al chocar con uno grande perderás 2 vidas.
 - Al quedarte sin vidas pierdes el juego.
-- Si logras alcanzar un puntaje superior a los primeros 5, podras grabar tus iniciales en la tabla de **Records**.
+- Si logras alcanzar un puntaje superior a los primeros 5, podrás grabar tus iniciales en la tabla de **Records**.
 
 ***
 ***
 
-Sin mas que agregar
+Sin más que agregar
 
 Disfruta el juego
 
