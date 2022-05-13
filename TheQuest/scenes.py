@@ -328,7 +328,7 @@ class Play(Scene):
                     explosion = Explosion(self.ship.rect.center, 'Ship')
                     self.all.add(explosion)
                 self.count += 1
-                if self.count == 2000:
+                if self.count == 1000:
                     self.life_count -= 5
 
     #Contadores en pantalla

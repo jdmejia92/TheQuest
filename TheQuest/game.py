@@ -14,7 +14,6 @@ class Game:
         self.history = History(self.screen)
         self.ending = Ending(self.screen)
         self.scenes = [self.intro, self.history, self.play]
-        self.active_scene = 0
 
     def reset(self):
         self.scenes.clear()
@@ -27,20 +26,15 @@ class Game:
             n = ProcessData().show_life()
             p = ProcessData().show_points()
             m = ProcessData().lower_visible_point()
-            print(m)
-            print(p)
             if n <= 0 and p <= m:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NoRecord))
-                self.scenes.append(self.ending)
             elif n > 0 and p <= m:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NoRecord))
-                self.scenes.append(self.ending)
             elif n <= 0 and p > m or n <= 0 and m == 0:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NewRecord))
-                self.scenes.append(self.ending)
             elif n > 0 and p > m or n > 0 and m == 0:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NewRecord))
-                self.scenes.append(self.ending)
+            self.scenes.append(self.ending)
         
     def deploy(self):
         self.reset()

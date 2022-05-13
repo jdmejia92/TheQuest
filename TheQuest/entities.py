@@ -50,7 +50,7 @@ class ProcessData():
             n = self.cur.fetchall()[4][0]
             return n
         except IndexError:
-            0
+            return 0
 
     #Guarde la cantidad de puntos y vidas de la partida
     def player_record(self, life, points):
