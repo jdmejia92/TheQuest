@@ -51,9 +51,7 @@ class Game:
             except IndexError:
                 pass
             self.active_escene += 1
-
-            self.final_scenes()
-            
+            self.final_scenes()      
             if self.active_escene > len(self.scenes):
                 self.active_escene = 0
                 self.data.con.close()
