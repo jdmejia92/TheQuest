@@ -52,7 +52,7 @@ pip install -r requirements.txt
 ***
 ***
 ## Los controles son los siguientes:
-***
+
 
 Para mover la nave a través de los niveles:
 - Flecha hacia arriba **UP**, para desplazarse hacia arriba.
@@ -61,7 +61,7 @@ Para mover la nave a través de los niveles:
 ***
 ***
 ## Las reglas del juego
-***
+
 - Al esquivar un meteoro, y que este llegue al límite izquierdo de la pantalla, se ganara 1 punto, por los pequeños, y 2 puntos por los grandes.
 - Al llegar al mundo al final de cada nivel, recibes 5 puntos adicionales.
 - Al chocar con un meteoro pequeño, perderás 1 vida y al chocar con uno grande perderás 2 vidas.
