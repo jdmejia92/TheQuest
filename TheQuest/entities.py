@@ -43,6 +43,18 @@ class ProcessData():
         n = self.cur.fetchone()[0]
         return n
 
+    #Compara e ultimo ID con el 5to de la lista de records
+    def checkID(self):
+        self.cur.execute("""SELECT id FROM Records ORDER BY id DESC LIMIT 1""")
+        n = self.cur.fetchone()[0]
+        try:
+            self.cur.execute("""SELECT id, Puntaje FROM Records ORDER BY Puntaje DESC LIMIT 5""")
+            m = self.cur.fetchall()[4][0]
+        except IndexError:
+            m = 0
+        y = (n==m)
+        return y
+
     #Muestra el puntaje mas bajo de los primeros 5
     def lower_visible_point(self):
         try:
@@ -229,7 +241,9 @@ class Meteor(pg.sprite.Sprite):
     def __init__(self, centrox, centroy, size):
         super().__init__()
         self.vx = 3
+        self.vx_max = 4
         self.vx_big = 2
+        self.vx_big_max = 3
         self.x_ini = centrox
         self.y_ini = centroy
         self.size = size
@@ -243,8 +257,14 @@ class Meteor(pg.sprite.Sprite):
     #Velocidad de los meteoros y asteroides
     def update(self):
             if self.size == 1:
+                key = pg.key.get_pressed()
+                if key[pg.K_RSHIFT]:
+                    self.rect.x -= self.vx_max
                 self.rect.x -= self.vx
             elif self.size == 0:
+                key = pg.key.get_pressed()
+                if key[pg.K_RSHIFT]:
+                    self.rect.x -= self.vx_big_max
                 self.rect.x -= self.vx_big
 
     def pass_meteor(self):

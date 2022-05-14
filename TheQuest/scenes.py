@@ -590,15 +590,16 @@ class Ending(Scene):
 
     #Letrero para continuar a la siguiente escena
     def press_nextscene(self):
+        self.show_count += 1
         if self.show_count >= 80:
             self.press_continue("Presiona ESPACIO para volver a iniciar")
-        if self.show_count >= 2500:
-            return True
 
+    #Borrar el puntaje del jugador si es menor al 5to mas bajo
     def deleteLowerPoint(self):
         point_play = self.data.show_points()
         fifth_point = self.data.lower_visible_point()
-        if point_play <= fifth_point:
+        checkID = self.data.checkID
+        if point_play <= fifth_point and checkID == False:
             id = self.data.show_lastid()
             self.data.deleteLowPoints(id)
 
@@ -622,8 +623,9 @@ class Ending(Scene):
 
             self.show_records()
 
-            self.show_count += 1
-
             self.press_nextscene()
+
+            if self.show_count >= 1500:
+                return True
 
             pg.display.flip()

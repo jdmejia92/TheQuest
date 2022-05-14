@@ -26,14 +26,15 @@ class Game:
             n = ProcessData().show_life()
             p = ProcessData().show_points()
             m = ProcessData().lower_visible_point()
-            if n <= 0 and p <= m:
-                self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NoRecord))
-            elif n > 0 and p <= m:
-                self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NoRecord))
-            elif n <= 0 and p > m or n <= 0 and m == 0:
+            y = ProcessData().checkID()
+            if n <= 0 and p == m and y == True or n <= 0 and m == 0 or n <= 0 and p > m and y == False:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NewRecord))
-            elif n > 0 and p > m or n > 0 and m == 0:
+            elif n > 0 and p == m and y == True or n > 0 and m == 0 or n > 0 and p > m and y == False:
                 self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NewRecord))
+            elif n > 0 and p <= m and y == False:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.win_NoRecord))
+            elif n <= 0 and p <= m and y == False:
+                self.scenes.append(Records(self.screen, estado = Alternative_Ending.lose_NoRecord))
             self.scenes.append(self.ending)
         
     def deploy(self):
