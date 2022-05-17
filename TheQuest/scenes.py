@@ -8,6 +8,7 @@ import random as rd
 
 white = (255, 255, 255)
 black = (0, 0, 0)
+music = True
 
 class Alternative_Ending(Enum):
     win_NewRecord = 1
@@ -33,9 +34,6 @@ class Scene:
         self.delay_show = 110
         self.show_count = 0
 
-    def stop_music(self):
-        pass
-
     #Hacer que el texto parpadee
     def press_continue(self, texto):
         if self.current_time >= self.change_time:
@@ -51,10 +49,19 @@ class Scene:
             rect.set_alpha(128)
             rect.fill((black))
             self.screen.blit(rect, (centerx - 5, centery - 5))
-            self.screen.blit(press_continue, (centerx, centery))        
+            self.screen.blit(press_continue, (centerx, centery))     
+
+    #Parar la musica
+    def stop_music(self):
+        global music
+        if music == True:
+            pg.mixer.music.unpause()
+        elif music == False:
+            pg.mixer.music.pause()   
 
     def bucle_ppal(self) -> bool:
-        return
+        pass
+            
 
 class Intro(Scene):
     def __init__(self, screen):
@@ -76,13 +83,17 @@ class Intro(Scene):
 
     #Carga de musica
     def play_music(self):
-        pg.mixer.music.load(self.sad_song, 'mp3')
-        pg.mixer.music.set_volume(0.1)
-        pg.mixer.music.play(-1)
+        global music
+        if music == True:
+            pg.mixer.music.load(self.sad_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(-1)
 
     def bucle_ppal(self):
         self.play_music()
         while True:
+            self.stop_music()
+
             self.clock.tick(FPS)
 
             self.current_time = pg.time.get_ticks()
@@ -94,7 +105,11 @@ class Intro(Scene):
                     pg.quit()
                     sys.exit()
                 if event.type == pg.KEYDOWN and event.key == pg.K_m:
-                    pg.mixer.music.stop()
+                    global music
+                    if music == True:
+                        music = False
+                    elif music == False:
+                        music = True
 
             self.screen.blit(self.cover, (0, 0))
 
@@ -162,6 +177,7 @@ class History(Scene):
     def bucle_ppal(self) -> bool:
         self.reset()
         while True:
+            self.stop_music()
 
             self.clock.tick(FPS)
 
@@ -173,7 +189,14 @@ class History(Scene):
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_SPACE:
                         return True
-            
+
+                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                    global music
+                    if music == True:
+                        music = False
+                    elif music == False:
+                        music = True
+
             self.current_time = pg.time.get_ticks()
 
             self.background_change(self.current_time)
@@ -422,14 +445,16 @@ class Play(Scene):
 
     #Poner muscia dependiendo del nivel
     def play_music(self):
-        if self.asteroid == 0:
-            pg.mixer.music.load(self.sad_song, 'mp3')
-            pg.mixer.music.set_volume(0.1)
-            pg.mixer.music.play(fade_ms=5000, loops=-1)
-        if self.asteroid >= 1:
-            pg.mixer.music.load(self.happy_song, 'mp3')
-            pg.mixer.music.set_volume(0.1)
-            pg.mixer.music.play(fade_ms=5000, loops=-1)
+        global music
+        if music == True:
+            if self.asteroid == 0:
+                pg.mixer.music.load(self.sad_song, 'mp3')
+                pg.mixer.music.set_volume(0.1)
+                pg.mixer.music.play(fade_ms=5000, loops=-1)
+            if self.asteroid >= 1:
+                pg.mixer.music.load(self.happy_song, 'mp3')
+                pg.mixer.music.set_volume(0.1)
+                pg.mixer.music.play(fade_ms=5000, loops=-1)
 
     #Juego
     def bucle_ppal(self) -> bool:
@@ -455,11 +480,19 @@ class Play(Scene):
             while self.life_count > -2 and len(self.asteroids) > 0:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
+                self.stop_music()
 
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                         pg.quit()
                         sys.exit()
+
+                    if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                        global music
+                        if music == True:
+                            music = False
+                        elif music == False:
+                            music = True
 
                 self.choose_background()
                 
@@ -487,6 +520,7 @@ class Play(Scene):
             while self.midle_world.status_arrive == True or self.world.status_arrive == True:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
+                self.stop_music()
 
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
@@ -496,6 +530,13 @@ class Play(Scene):
                     if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                         self.world.status_arrive = False
                         self.midle_world.status_arrive = False
+
+                    if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                        global music
+                        if music == True:
+                            music = False
+                        elif music == False:
+                            music = True
 
                 self.all.update()
 
@@ -565,20 +606,23 @@ class Records(Scene):
             self.press_continue("Presione ENTER para continuar...")
 
     def play_music(self):
-        if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.win_NoRecord:
-            pg.mixer.music.load(self.win_song, 'mp3')
-            pg.mixer.music.set_volume(0.1)
-            pg.mixer.music.play(-1)
-        elif self.estado == Alternative_Ending.lose_NewRecord or Alternative_Ending.lose_NoRecord:
-            pg.mixer.music.load(self.sad_song, 'mp3')
-            pg.mixer.music.set_volume(0.1)
-            pg.mixer.music.play(-1)
+        global music
+        if music == True:
+            if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.win_NoRecord:
+                pg.mixer.music.load(self.win_song, 'mp3')
+                pg.mixer.music.set_volume(0.1)
+                pg.mixer.music.play(-1)
+            elif self.estado == Alternative_Ending.lose_NewRecord or Alternative_Ending.lose_NoRecord:
+                pg.mixer.music.load(self.sad_song, 'mp3')
+                pg.mixer.music.set_volume(0.1)
+                pg.mixer.music.play(-1)
 
     def bucle_ppal(self):
         self.play_music()
         self.time = 0
 
         while True:
+            self.stop_music()
 
             self.clock.tick(FPS)
 
@@ -591,6 +635,13 @@ class Records(Scene):
                 
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     return True
+
+                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                    global music
+                    if music == True:
+                        music = False
+                    elif music == False:
+                        music = True
 
                 if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.lose_NewRecord:
                     if event.type == pg.KEYDOWN:
@@ -652,6 +703,8 @@ class Ending(Scene):
 
     def bucle_ppal(self) -> bool:
         while True:
+            self.stop_music()
+
             self.clock.tick(FPS)
 
             self.current_time = pg.time.get_ticks()
@@ -663,6 +716,13 @@ class Ending(Scene):
 
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     return True
+                
+                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                    global music
+                    if music == True:
+                        music = False
+                    elif music == False:
+                        music = True
             
             self.screen.blit(self.ending, (0, 0))
 

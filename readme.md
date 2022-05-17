@@ -59,6 +59,7 @@ Para mover la nave a través de los niveles:
 - Flecha hacia abajo **DOWN**, para desplazarse hacia abajo.
 - Para acelerar la velocidad de la nave debes presionar la tecla **Shift Izquierdo** en conjunto con la flecha de la dirección en la que deseas desplazarte.
 - Para acelerar la velocidad de los meteoros debes presionar la tecla **Shift Derecho**.
+- Para poner pausa o reanudar la musica presiona la tecla **M**
 ***
 ***
 ## Las reglas del juego
