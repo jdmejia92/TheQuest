@@ -11,9 +11,9 @@ Y con la librería:
 ***
 
 ## Para poder instalarlo debes seguir los siguientes pasos:
-***
+
 ### Mediante un archivo ZIP
-***
+
 
 1. Descarga el archivo ZIP desde el repositorio, con el botón verde **Code** 
 
@@ -31,7 +31,7 @@ pip install -r requirements.txt
 ***
 
 ### Mediante la función Git Clone
-***
+
 
 1. Copia el **URL** desde la sección **HTTPS** 
 

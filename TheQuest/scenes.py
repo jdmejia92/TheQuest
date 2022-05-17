@@ -1,5 +1,5 @@
 import pygame as pg
-from TheQuest import FPS, levels, BigAsteroids
+from TheQuest import FPS
 from TheQuest.entities import Explosion, Meteor, Ship, World, ShipStatus, ProcessData
 import os
 import sys
@@ -18,7 +18,12 @@ class Alternative_Ending(Enum):
 class Scene:
     def __init__(self, screen):
         self.screen = screen
+        #Carga de fuentes para los textos regulares
         self.font_press = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 20)
+        #Canciones
+        self.sad_song = "./resources/music/Argonne - Zachariah Hickman.mp3"
+        self.happy_song = "./resources/music/Panda Clan - DJ Williams.mp3"
+        self.win_song = "./resources/music/Fond Memories - SYBS.mp3"
         self.data = ProcessData()
         self.clock = pg.time.Clock()
         self.delay = 1750
@@ -27,6 +32,9 @@ class Scene:
         self.show = True
         self.delay_show = 110
         self.show_count = 0
+
+    def stop_music(self):
+        pass
 
     #Hacer que el texto parpadee
     def press_continue(self, texto):
@@ -43,7 +51,7 @@ class Scene:
             rect.set_alpha(128)
             rect.fill((black))
             self.screen.blit(rect, (centerx - 5, centery - 5))
-            self.screen.blit(press_continue, (centerx, centery))
+            self.screen.blit(press_continue, (centerx, centery))        
 
     def bucle_ppal(self) -> bool:
         return
@@ -51,8 +59,9 @@ class Scene:
 class Intro(Scene):
     def __init__(self, screen):
         super().__init__(screen)
+        #Carga fondo y fuente para titulo principal
         self.cover = pg.image.load("./resources/images/Worlds/Earth_red.jpg")
-        self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)      
+        self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
 
     #Cargar los titulos una sola vez
     def title(self):
@@ -65,7 +74,14 @@ class Intro(Scene):
         if self.show_count >= 80:
             self.press_continue("Presiona ESPACIO para iniciar")
 
+    #Carga de musica
+    def play_music(self):
+        pg.mixer.music.load(self.sad_song, 'mp3')
+        pg.mixer.music.set_volume(0.1)
+        pg.mixer.music.play(-1)
+
     def bucle_ppal(self):
+        self.play_music()
         while True:
             self.clock.tick(FPS)
 
@@ -77,6 +93,8 @@ class Intro(Scene):
                 if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                     pg.quit()
                     sys.exit()
+                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                    pg.mixer.music.stop()
 
             self.screen.blit(self.cover, (0, 0))
 
@@ -178,6 +196,11 @@ class Play(Scene):
         self.midle_world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2, "Midle")
         self.midle_world_lunch = World(self.screen, -400, self.screen.get_height()//2, "Midle_lunch")
         self.world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2, "End")
+        #Carga de sonidos de explosion
+        self.explosion_big = pg.mixer.Sound("./resources/music/Explosion.wav")
+        self.explosion_big.set_volume(0.2)
+        self.explosion_small = pg.mixer.Sound("./resources/music/Explosion.wav")
+        self.explosion_small.set_volume(0.1)
         #Lista de niveles
         self.worlds = pg.sprite.Group()
         self.meteors = pg.sprite.Group()
@@ -318,10 +341,12 @@ class Play(Scene):
                         explosion = Explosion(hit.rect.center, 'Small')
                         self.all.add(explosion)
                         self.life_count -= 1
+                        self.explosion_small.play()
                     elif group_rock == self.asteroids:
                         explosion = Explosion(hit.rect.center, 'Big')
                         self.all.add(explosion)
                         self.life_count -= 2
+                        self.explosion_big.play()
 
             if self.life_count <= 0:
                 if pg.sprite.collide_rect(self.ship, rock):
@@ -363,7 +388,6 @@ class Play(Scene):
                 self.ship.ship_status = ShipStatus.arrive
                 if self.ship.rotation == 181:
                     self.ship.ship_status = ShipStatus.landing
-            
 
     #Letrero de pasar a la siguiente escena
     def press_nextscene(self):
@@ -396,6 +420,17 @@ class Play(Scene):
             level = list(zip(x, y))
             self.levels.append(level)
 
+    #Poner muscia dependiendo del nivel
+    def play_music(self):
+        if self.asteroid == 0:
+            pg.mixer.music.load(self.sad_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(fade_ms=5000, loops=-1)
+        if self.asteroid >= 1:
+            pg.mixer.music.load(self.happy_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(fade_ms=5000, loops=-1)
+
     #Juego
     def bucle_ppal(self) -> bool:
         #Listas para niveles distintos en cada vuelta
@@ -413,6 +448,7 @@ class Play(Scene):
         self.reset()
 
         while self.life_count > -2 and self.asteroid < len(self.BigAsteroids):
+            self.play_music()
             self.create_meteors(level)
             self.create_bigmeteors(self.asteroid)
             
@@ -528,7 +564,18 @@ class Records(Scene):
         elif self.estado == Alternative_Ending.lose_NoRecord or self.estado == Alternative_Ending.win_NoRecord:
             self.press_continue("Presione ENTER para continuar...")
 
+    def play_music(self):
+        if self.estado == Alternative_Ending.win_NewRecord or self.estado == Alternative_Ending.win_NoRecord:
+            pg.mixer.music.load(self.win_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(-1)
+        elif self.estado == Alternative_Ending.lose_NewRecord or Alternative_Ending.lose_NoRecord:
+            pg.mixer.music.load(self.sad_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(-1)
+
     def bucle_ppal(self):
+        self.play_music()
         self.time = 0
 
         while True:
