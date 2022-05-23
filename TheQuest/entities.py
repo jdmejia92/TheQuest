@@ -102,6 +102,7 @@ class ShipStatus(Enum):
     landing = 5
     takeoff = 6
     deploy = 7
+    destroy = 8
 
 #Nave
 class Ship(pg.sprite.Sprite):

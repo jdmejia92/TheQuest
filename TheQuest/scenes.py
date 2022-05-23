@@ -55,9 +55,9 @@ class Scene:
     def stop_music(self):
         global music
         if music == True:
-            pg.mixer.music.unpause()
+            pg.mixer.music.set_volume(0.5)
         elif music == False:
-            pg.mixer.music.pause()   
+            pg.mixer.music.set_volume(0.0)  
 
     def bucle_ppal(self) -> bool:
         pass
@@ -69,12 +69,18 @@ class Intro(Scene):
         #Carga fondo y fuente para titulo principal
         self.cover = pg.image.load("./resources/images/Worlds/Earth_red.jpg")
         self.font_title = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
+        self.controls = pg.image.load(os.path.join("./resources/images/Instructions/Controles.png")).convert_alpha()
+        self.controls_rect = self.controls.get_rect()
+        self.instruccions_image = pg.image.load(os.path.join("./resources/images/Instructions/Instructions.png")).convert_alpha()
+        self.instruccions_image_rect = self.instruccions_image.get_rect(centerx = self.screen.get_width()//2, centery = self.screen.get_height()//2)
+        self.show_instruccions = False
 
-    #Cargar los titulos una sola vez
-    def title(self):
+    #Cargar los textos una sola vez
+    def texts(self):
         title = self.font_title.render("THE QUEST", True, white)
         rectexto = title.get_rect()
         self.screen.blit(title, ((self.screen.get_width() - rectexto.width)//2, (self.screen.get_height() - rectexto.h)//2))
+        self.screen.blit(self.controls, ((10, 10)))
 
     #Letrero de pasar a la siguiente escena
     def press_nextscene(self):
@@ -83,14 +89,18 @@ class Intro(Scene):
 
     #Carga de musica
     def play_music(self):
-        global music
-        if music == True:
-            pg.mixer.music.load(self.sad_song, 'mp3')
-            pg.mixer.music.set_volume(0.1)
-            pg.mixer.music.play(-1)
+        pg.mixer.music.load(self.sad_song, 'mp3')
+        pg.mixer.music.set_volume(0.1)
+        pg.mixer.music.play(-1)
+
+    #Mostrar las instrucciones
+    def instruccions(self):
+        if self.show_instruccions == True:
+            self.screen.blit(self.instruccions_image, (self.instruccions_image_rect.x, self.instruccions_image_rect.y))
 
     def bucle_ppal(self):
         self.play_music()
+
         while True:
             self.stop_music()
 
@@ -104,16 +114,23 @@ class Intro(Scene):
                 if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
                     pg.quit()
                     sys.exit()
-                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                if event.type == pg.KEYDOWN and event.key == pg.K_1:
                     global music
                     if music == True:
                         music = False
                     elif music == False:
                         music = True
+                if event.type == pg.KEYDOWN and event.key == pg.K_2:
+                    if self.show_instruccions == False:
+                        self.show_instruccions = True
+                    elif self.show_instruccions == True:
+                        self.show_instruccions = False
 
             self.screen.blit(self.cover, (0, 0))
 
-            self.title()
+            self.texts()
+
+            self.instruccions()
 
             self.show_count += 1
             
@@ -169,6 +186,7 @@ class History(Scene):
         if self.move_background == False:
             self.press_continue("Presione ESPACIO para continuar")
 
+    #Reinicio si se hace una segunda vuelta
     def reset(self):
         self.current_time = 0
         self.active_background = 0
@@ -190,7 +208,7 @@ class History(Scene):
                     if event.key == pg.K_SPACE:
                         return True
 
-                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                if event.type == pg.KEYDOWN and event.key == pg.K_1:
                     global music
                     if music == True:
                         music = False
@@ -211,9 +229,15 @@ class Play(Scene):
     def __init__(self, screen):
         super().__init__(screen)
         self.font_counter = pg.font.Font("./resources/fonts/FredokaOne-Regular.ttf", 16)
-        self.white_back = pg.image.load(os.path.join("./resources/images/input/Fondo_contadores.png")).convert_alpha()
         self.regular_background = pg.image.load(os.path.join("./resources/images/Background/New_Background.png")).convert_alpha()
         self.first_background_image = pg.image.load(os.path.join("./resources/images/Background/First_Background.png")).convert_alpha()
+        #Mostrar instrucciones y boton de controles
+        self.instruccions_image = pg.image.load(os.path.join("./resources/images/Instructions/Instructions.png")).convert_alpha()
+        self.instruccions_image_rect = self.instruccions_image.get_rect(centerx = self.screen.get_width()//2, centery = self.screen.get_height()//2)
+        self.show_instruccions = False
+        self.controls = pg.image.load(os.path.join("./resources/images/Instructions/Controles.png")).convert_alpha()
+        self.controls_rect = self.controls.get_rect()
+        #Carga jugador y mundos
         self.ship = Ship(self.screen, 80, self.screen.get_height()//2)
         self.world_start = World(self.screen, -400, self.screen.get_height()//2, "Start")
         self.midle_world = World(self.screen, self.screen.get_width() + 1000, self.screen.get_height()//2, "Midle")
@@ -224,6 +248,8 @@ class Play(Scene):
         self.explosion_big.set_volume(0.2)
         self.explosion_small = pg.mixer.Sound("./resources/music/Explosion.wav")
         self.explosion_small.set_volume(0.1)
+        self.explosion_ship = pg.mixer.Sound("./resources/music/Explosion.wav")
+        self.explosion_ship.set_volume(0.5)
         #Lista de niveles
         self.worlds = pg.sprite.Group()
         self.meteors = pg.sprite.Group()
@@ -309,13 +335,14 @@ class Play(Scene):
             self.screen.blit(self.background, (0,0))
 
     def choose_world(self, level):
-        if level == 0:
-            self.worlds.add(self.world_start, self.midle_world)
-        elif level > 0 and level < len(self.BigAsteroids)-1:
-            self.worlds.add(self.midle_world_lunch, self.midle_world)
-        elif level == len(self.BigAsteroids)-1:
-            self.midle_world.kill()
-            self.worlds.add(self.midle_world_lunch, self.world)
+        if self.life_count > 0:
+            if level == 0:
+                self.worlds.add(self.world_start, self.midle_world)
+            elif level > 0 and level < len(self.BigAsteroids)-1:
+                self.worlds.add(self.midle_world_lunch, self.midle_world)
+            elif level == len(self.BigAsteroids)-1:
+                self.midle_world.kill()
+                self.worlds.add(self.midle_world_lunch, self.world)
 
     #Reinicio al pasar de nivel
     def reset(self):
@@ -348,6 +375,7 @@ class Play(Scene):
     
     #Eliminacion de meteoros
     def eliminate_meteors(self, group_rock):
+        global music
         for rock in group_rock:
             if rock.pass_meteor():
                 group_rock.remove(rock)
@@ -364,48 +392,63 @@ class Play(Scene):
                         explosion = Explosion(hit.rect.center, 'Small')
                         self.all.add(explosion)
                         self.life_count -= 1
-                        self.explosion_small.play()
+                        if music == True:
+                            self.explosion_small.play()
                     elif group_rock == self.asteroids:
                         explosion = Explosion(hit.rect.center, 'Big')
                         self.all.add(explosion)
                         self.life_count -= 2
-                        self.explosion_big.play()
+                        if music == True:
+                            self.explosion_big.play()
 
             if self.life_count <= 0:
                 if pg.sprite.collide_rect(self.ship, rock):
                     explosion = Explosion(self.ship.rect.center, 'Ship')
                     self.all.add(explosion)
+                    if music == True:
+                        self.explosion_ship.play()
                 self.count += 1
-                if self.count == 1000:
-                    self.life_count -= 5
+                if self.count == 700:
+                    self.ship.ship_status = ShipStatus.destroy
 
     #Contadores en pantalla
-    def counters(self, level):
-        self.screen.blit(self.white_back, (3, 5))
+    def texts(self, level):
         life_text = self.font_counter.render('Contador de vidas: ' + str(self.life_count), True, white)
+        rect_life_text = life_text.get_rect()
+        back = pg.Surface((rect_life_text.w + 15, 65))
+        back.set_alpha(85)
+        back.fill((white))
         level_text = self.font_counter.render('Level: ' + str(level + 1), True, white)
         points = self.font_counter.render('Puntos: ' + str(self.points), True, white)
+        self.screen.blit(back, (3, 5))
         self.screen.blit(life_text, (10, 10))
         self.screen.blit(level_text, (10, 28))
         self.screen.blit(points, (10, 45))
+        self.screen.blit(self.controls, ((3, 75)))
+
+    #Muestra las instrucciones
+    def instructions(self):
+        if self.show_instruccions == True:
+            self.screen.blit(self.instruccions_image, (self.instruccions_image_rect.x, self.instruccions_image_rect.y))
 
     #Activar llegar al mundo al culminar los asteroides
     def world_arrive(self):
-        if len(self.asteroids) <= 0 and self.asteroid < len(self.BigAsteroids) - 1:
+        if len(self.asteroids) <= 0 and self.asteroid < len(self.BigAsteroids) - 1 and self.life_count > 0:
             self.midle_world.status_arrive = True
-        elif len(self.asteroids) <= 0 and self.asteroid == len(self.BigAsteroids) - 1:
+        elif len(self.asteroids) <= 0 and self.asteroid == len(self.BigAsteroids) - 1 and self.life_count > 0:
             self.world.status_arrive = True
 
     #Acciones a la llegada a un nuevo mundo
     def worlds_accions(self):
         if self.midle_world.rect.centerx == 1272 or self.world.rect.centerx == 1272:
             self.points += 5
-
+        #Que llegue el mundo medio
         if len(self.asteroids) <= 0 and self.asteroid < len(self.BigAsteroids) - 1:
             if self.midle_world.rect.centerx <= self.screen.get_width() + 500:
                 self.ship.ship_status = ShipStatus.arrive
                 if self.ship.rotation == 181:
                     self.ship.ship_status = ShipStatus.landing
+        #Que llegue el mundo final
         elif len(self.asteroids) <= 0 and self.asteroid == len(self.BigAsteroids) - 1:
             if self.world.rect.centerx <= self.screen.get_width() + 450:
                 self.ship.ship_status = ShipStatus.arrive
@@ -421,11 +464,11 @@ class Play(Scene):
     def create_levels(self):
         for i in range(2):
             x_a = []
-            for i in range(3):
+            for i in range(6):
                 n = rd.uniform(1.1,2)
                 x_a.append(n)
             y_a = []
-            for i in range(3):
+            for i in range(6):
                 m = rd.uniform(1,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
@@ -433,11 +476,11 @@ class Play(Scene):
 
         for i in range(2):
             x = []
-            for i in range(4):
+            for i in range(6):
                 n = rd.uniform(1.1,2)
                 x.append(n)
             y = []
-            for i in range(4):
+            for i in range(6):
                 m = rd.uniform(1,20)
                 y.append(m)
             level = list(zip(x, y))
@@ -445,16 +488,14 @@ class Play(Scene):
 
     #Poner muscia dependiendo del nivel
     def play_music(self):
-        global music
-        if music == True:
-            if self.asteroid == 0:
-                pg.mixer.music.load(self.sad_song, 'mp3')
-                pg.mixer.music.set_volume(0.1)
-                pg.mixer.music.play(fade_ms=5000, loops=-1)
-            if self.asteroid >= 1:
-                pg.mixer.music.load(self.happy_song, 'mp3')
-                pg.mixer.music.set_volume(0.1)
-                pg.mixer.music.play(fade_ms=5000, loops=-1)
+        if self.asteroid == 0:
+            pg.mixer.music.load(self.sad_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(fade_ms=5000, loops=-1)
+        if self.asteroid >= 1:
+            pg.mixer.music.load(self.happy_song, 'mp3')
+            pg.mixer.music.set_volume(0.1)
+            pg.mixer.music.play(fade_ms=5000, loops=-1)
 
     #Juego
     def bucle_ppal(self) -> bool:
@@ -472,12 +513,12 @@ class Play(Scene):
         self.create_levels()
         self.reset()
 
-        while self.life_count > -2 and self.asteroid < len(self.BigAsteroids):
+        while self.ship.ship_status != ShipStatus.destroy and self.asteroid < len(self.BigAsteroids):
             self.play_music()
             self.create_meteors(level)
             self.create_bigmeteors(self.asteroid)
             
-            while self.life_count > -2 and len(self.asteroids) > 0:
+            while self.ship.ship_status != ShipStatus.destroy and len(self.asteroids) > 0:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
                 self.stop_music()
@@ -487,32 +528,38 @@ class Play(Scene):
                         pg.quit()
                         sys.exit()
 
-                    if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                    if event.type == pg.KEYDOWN and event.key == pg.K_1:
                         global music
                         if music == True:
                             music = False
                         elif music == False:
                             music = True
 
-                self.choose_background()
-                
+                    if event.type == pg.KEYDOWN and event.key == pg.K_2:
+                        if self.show_instruccions == False:
+                            self.show_instruccions = True
+                        elif self.show_instruccions == True:
+                            self.show_instruccions = False
+
                 if self.ship.ship_status == ShipStatus.travel:
                     self.obstacles.update()
 
                 if self.life_count <= 0:
                     self.ship.ship_status = ShipStatus.explode
 
-                self.all.update()
-
                 self.eliminate_meteors(self.meteors)
                 self.eliminate_meteors(self.asteroids)
 
                 self.world_arrive()
 
-                self.all.draw(self.screen)
-                self.obstacles.draw(self.screen)
+                self.instructions()
 
-                self.counters(level)
+                if self.show_instruccions == False:
+                    self.choose_background()
+                    self.all.update()
+                    self.all.draw(self.screen)
+                    self.obstacles.draw(self.screen)
+                    self.texts(level)
 
                 pg.display.flip()
 
@@ -520,7 +567,6 @@ class Play(Scene):
             while self.midle_world.status_arrive == True or self.world.status_arrive == True:
                 self.clock.tick(FPS)
                 self.current_time = pg.time.get_ticks()
-                self.stop_music()
 
                 for event in pg.event.get():
                     if event.type == pg.QUIT or event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE:
@@ -529,34 +575,29 @@ class Play(Scene):
 
                     if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                         self.world.status_arrive = False
-                        self.midle_world.status_arrive = False
 
-                    if event.type == pg.KEYDOWN and event.key == pg.K_m:
-                        global music
-                        if music == True:
-                            music = False
-                        elif music == False:
-                            music = True
+                    if event.type == pg.KEYDOWN and event.key == pg.K_2:
+                        if self.show_instruccions == False:
+                            self.show_instruccions = True
+                        elif self.show_instruccions == True:
+                            self.show_instruccions = False
 
-                self.all.update()
+                self.instructions()
 
-                self.worlds_accions()
-
-                self.background_move(self.current_time)
-
-                self.screen.blit(self.background, (0,0))
-
-                self.all.draw(self.screen)
-
-                self.counters(level)
-
-                self.press_nextscene()
+                if self.show_instruccions == False:
+                    self.all.update()
+                    self.worlds_accions()
+                    self.choose_background()
+                    self.all.draw(self.screen)
+                    self.texts(level)
+                    self.press_nextscene()
 
                 pg.display.flip()
 
-            level += 1
-            self.asteroid += 1
-            self.reset()
+            if self.life_count > 0:
+                level += 1
+                self.asteroid += 1
+                self.reset()
 
         self.data.createdata()
         self.data.player_record(points = self.points, life = self.life_count)
@@ -569,8 +610,7 @@ class Records(Scene):
         self.lose_background = pg.image.load(os.path.join("./resources/images/Worlds/Fail.png")).convert_alpha()
         self.font_initials = pg.font.Font("./resources/fonts/Techovier Bold.ttf", 29)
         self.font_points = pg.font.Font("./resources/fonts/Dissimilar-Headlines.ttf", 60)
-        self.input = pg.image.load(os.path.join("./resources/images/Input/Input.png")).convert_alpha()
-        self.input_rect = self.input.get_rect(center=(self.screen.get_width()//2, 450))
+        self.input = pg.Rect(350, 427.5, 100, 45)
         self.write_initials = pg.image.load(os.path.join("./resources/images/Worlds/Ingresa_iniciales.png")).convert_alpha()
         self.write_initials_rect = self.write_initials.get_rect()
         self.active = False
@@ -594,9 +634,13 @@ class Records(Scene):
     def input_initials(self):
         if self.estado == Alternative_Ending.lose_NewRecord or self.estado == Alternative_Ending.win_NewRecord:
             self.screen.blit(self.write_initials, (self.screen.get_width()//2 - self.write_initials_rect.centerx, self.screen.get_height()//2 + 55))
-            self.screen.blit(self.input, (self.input_rect.x, self.input_rect.y))
             text_surface = self.font_initials.render(self.initials, True, white)
-            self.screen.blit(text_surface, (self.input_rect.x + 10, self.input_rect.y + 2))
+            self.input.w = max(100, text_surface.get_width()+10)
+            input = pg.Surface((self.input.w, self.input.h), pg.SRCALPHA)
+            input.set_alpha(90)
+            input.fill(white)
+            self.screen.blit(input, (self.input.x, self.input.y))
+            self.screen.blit(text_surface, (self.input.x + 5, self.input.y + 2))
 
     #Letrero para pasar a la siguiente escena
     def press_nextscene(self):
@@ -636,7 +680,7 @@ class Records(Scene):
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
                     return True
 
-                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                if event.type == pg.KEYDOWN and event.key == pg.K_1:
                     global music
                     if music == True:
                         music = False
@@ -717,7 +761,7 @@ class Ending(Scene):
                 if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                     return True
                 
-                if event.type == pg.KEYDOWN and event.key == pg.K_m:
+                if event.type == pg.KEYDOWN and event.key == pg.K_1:
                     global music
                     if music == True:
                         music = False
