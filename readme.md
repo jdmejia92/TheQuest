@@ -80,4 +80,6 @@ Disfruta el juego
 Cualquier observación o mejora es bienvenida
 ***
 ***
+Imagen del fuego de la nave: Image by rawpixel.com
+
 &copy; Juan Daniel Mejia Hoyos 2022

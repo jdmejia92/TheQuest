@@ -112,6 +112,7 @@ class Ship(pg.sprite.Sprite):
         self.cent_x = cent_x
         self.cent_y = cent_y
         self.image_ship = pg.image.load("resources/images/StarShip/StarShip.png")
+        self.mask = pg.mask.from_surface(self.image_ship)
         self.image = self.image_ship
         self.rect = self.image.get_rect(centerx = self.cent_x, centery = self.cent_y)
         self.rect_image = self.rect
@@ -250,9 +251,11 @@ class Meteor(pg.sprite.Sprite):
         self.size = size
         if self.size == 1:
             self.image = pg.image.load(os.path.join("resources/images/Meteor/Meteor_ready.png")).convert_alpha()
+            self.mask = pg.mask.from_surface(self.image)
             self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
         elif self.size == 0:
            self.image = pg.image.load(os.path.join("resources/images/Meteor/Big_Meteor.png")).convert_alpha()
+           self.mask = pg.mask.from_surface(self.image)
            self.rect = self.image.get_rect(center=(self.x_ini, self.y_ini))
 
     #Velocidad de los meteoros y asteroides
@@ -326,7 +329,7 @@ class Explosion(pg.sprite.Sprite):
         self.explosion_anim['Ship'] = []
         #Cargar las explosiones pequeñas y grandes
         for i in range(71):
-            explosion = pg.image.load(os.path.join(f"./resources/images/Explosion/ExplosionLarga/Explosion{i}.png")).convert_alpha()
+            explosion = pg.image.load(os.path.join(f"./resources/images/Explosion/Explosion{i}.png")).convert_alpha()
             self.explosion_anim['Big'].append(explosion)
             small_explosion = pg.transform.scale(explosion, (60, 60))
             self.explosion_anim['Small'].append(small_explosion)

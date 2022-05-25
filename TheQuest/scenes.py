@@ -386,20 +386,21 @@ class Play(Scene):
                     self.points += 2
 
             if self.ship.ship_status == ShipStatus.travel:
-                hits = pg.sprite.spritecollide(self.ship, group_rock, True)
-                for hit in hits:
-                    if group_rock == self.meteors:
-                        explosion = Explosion(hit.rect.center, 'Small')
-                        self.all.add(explosion)
-                        self.life_count -= 1
-                        if music == True:
-                            self.explosion_small.play()
-                    elif group_rock == self.asteroids:
-                        explosion = Explosion(hit.rect.center, 'Big')
-                        self.all.add(explosion)
-                        self.life_count -= 2
-                        if music == True:
-                            self.explosion_big.play()
+                if pg.sprite.spritecollide(self.ship, group_rock, False):
+                    hits = pg.sprite.spritecollide(self.ship, group_rock, True, pg.sprite.collide_mask)
+                    for hit in hits:
+                        if group_rock == self.meteors:
+                            explosion = Explosion(hit.rect.center, 'Small')
+                            self.all.add(explosion)
+                            self.life_count -= 1
+                            if music == True:
+                                self.explosion_small.play()
+                        elif group_rock == self.asteroids:
+                            explosion = Explosion(hit.rect.center, 'Big')
+                            self.all.add(explosion)
+                            self.life_count -= 2
+                            if music == True:
+                                self.explosion_big.play()
 
             if self.life_count <= 0:
                 if pg.sprite.collide_rect(self.ship, rock):
@@ -575,6 +576,7 @@ class Play(Scene):
 
                     if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
                         self.world.status_arrive = False
+                        self.midle_world.status_arrive = False
 
                     if event.type == pg.KEYDOWN and event.key == pg.K_2:
                         if self.show_instruccions == False:
