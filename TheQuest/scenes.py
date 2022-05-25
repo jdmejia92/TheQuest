@@ -463,25 +463,25 @@ class Play(Scene):
 
     #Crear lista de niveles
     def create_levels(self):
-        for i in range(2):
+        for i in range(3):
             x_a = []
-            for i in range(6):
-                n = rd.uniform(1.1,2)
+            for i in range(20):
+                n = rd.uniform(1.1,10)
                 x_a.append(n)
             y_a = []
-            for i in range(6):
+            for i in range(20):
                 m = rd.uniform(1,20)
                 y_a.append(m)
             asteroid = list(zip(x_a, y_a))
             self.BigAsteroids.append(asteroid)
 
-        for i in range(2):
+        for i in range(3):
             x = []
-            for i in range(6):
-                n = rd.uniform(1.1,2)
+            for i in range(20):
+                n = rd.uniform(1.1,10)
                 x.append(n)
             y = []
-            for i in range(6):
+            for i in range(20):
                 m = rd.uniform(1,20)
                 y.append(m)
             level = list(zip(x, y))

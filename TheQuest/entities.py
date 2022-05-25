@@ -1,3 +1,4 @@
+from turtle import Screen
 import pygame as pg
 from TheQuest import FPS
 from enum import Enum
@@ -111,9 +112,20 @@ class Ship(pg.sprite.Sprite):
         self.screen = screen
         self.cent_x = cent_x
         self.cent_y = cent_y
-        self.image_ship = pg.image.load("resources/images/StarShip/StarShip.png")
-        self.mask = pg.mask.from_surface(self.image_ship)
-        self.image = self.image_ship
+        self.image_ship = {}
+        self.image_ship['Front'] = []
+        self.image_ship['Rotate'] = []
+        #Cargar imagenes de la nave
+        for i in range(6):
+            ship = pg.image.load(os.path.join(f"./resources/images/StarShip/StarShip0{i}.png")).convert_alpha()
+            self.image_ship['Front'].append(ship)
+            ship_rotate = pg.transform.rotate(ship, 180)
+            self.image_ship['Rotate'].append(ship_rotate)
+        self.active_ship = 0
+        self.animation_time = FPS // 13
+        self.current_time = 0
+        self.image = self.image_ship['Front'][0]
+        self.mask = pg.mask.from_surface(self.image)
         self.rect = self.image.get_rect(centerx = self.cent_x, centery = self.cent_y)
         self.rect_image = self.rect
         self.ini_speedy = 5
@@ -128,13 +140,23 @@ class Ship(pg.sprite.Sprite):
         self.ship_status = ShipStatus.lunch
 
     def update(self):
+        #Animacion de la nave
+        if self.current_time >= self.animation_time:
+            self.current_time = 0
+            self.active_ship += 1
+            if self.active_ship >= len(self.image_ship['Front']):
+                self.active_ship = 0
+        self.current_time += 1
+
         #Animacion cuando la nave llega al mundo
         if self.ship_status == ShipStatus.arrive:
             if self.rect.centery >= self.screen.get_height()//2:
+                self.image = self.image_ship['Front'][self.active_ship]
                 self.rect.centery -= self.arrive_speed
                 if self.rect.centery <= self.screen.get_height()//2:
                     self.arrive_speed = 0
             elif self.rect.centery <= self.screen.get_height()//2:
+                self.image = self.image_ship['Front'][self.active_ship]
                 self.rect.centery += self.arrive_speed
                 if self.rect.centery >= self.screen.get_height()//2:
                     self.arrive_speed = 0
@@ -142,12 +164,11 @@ class Ship(pg.sprite.Sprite):
             #Rotacion de la nave
             if self.arrive_speed == 0:
                 if self.rotation <= 181:
-                    self.image = pg.transform.rotate(self.image_ship, self.angle)
+                    self.image = pg.transform.rotate(self.image_ship['Front'][self.active_ship], self.angle)
                     self.angle += 1
                     self.rect = self.image.get_rect(center=self.rect.center)
 
                 self.rotation += 1
-                self.image_rotate = self.image
                 self.width = self.rect.width
                 self.height = self.rect.height
 
@@ -162,15 +183,15 @@ class Ship(pg.sprite.Sprite):
             if self.rect.centerx >= self.screen.get_width() - 700:
                 if self.rect.centerx % 10 == 0:
                     if self.landing <= 55:
-                        self.image = pg.transform.smoothscale(self.image_rotate, (self.width, self.height))
+                        self.image = pg.transform.smoothscale(self.image_ship['Rotate'][self.active_ship], (self.width, self.height))
                         self.rect = self.image.get_rect(center=self.rect.center)
-                        self.width -= 2.5
+                        self.width -= 4
                         self.height -= 1
-                    
                     self.landing += 1
 
         #Cuando la nave se encuentra en movimiento
         elif self.ship_status == ShipStatus.travel:
+            self.image = self.image_ship['Front'][self.active_ship]
             key = pg.key.get_pressed()
             if key[pg.K_UP]:
                 self.rect.y -= self.speedy
@@ -190,35 +211,40 @@ class Ship(pg.sprite.Sprite):
 
         #Cuando la nave arranca desde el mundo
         elif self.ship_status == ShipStatus.lunch:
-            self.image = pg.transform.smoothscale(self.image_ship, (12.5, 5))
-            self.rect = self.image.get_rect(x = 1, y = self.screen.get_height()//2)
-            self.widthB = self.rect.w
-            self.heightB = self.rect.h
+            self.small_ship = pg.transform.smoothscale(self.image_ship['Front'][self.active_ship], (10, 5))
+            self.small_rect = self.small_ship.get_rect(x = 1, y = self.screen.get_height()//2)
+            self.widthB = self.small_rect.w
+            self.heightB = self.small_rect.h
             if self.view == 30:
                 self.ship_status = ShipStatus.takeoff
             self.view += 1
 
-            self.small_ship = self.image
-            self.small_rect = self.rect
+            self.image = self.small_ship
+            self.rect = self.small_rect
 
         #Sale del mundo
-        elif self.ship_status == ShipStatus.takeoff:           
+        elif self.ship_status == ShipStatus.takeoff: 
             if self.rect.centerx <= self.screen.get_width()//2:
                 self.rect.centerx += 2
-                if self.rect.centerx % 10 == 9 or self.rect.centerx % 10 == 5:
+                if self.rect.centerx % 10 == 2 or self.rect.centerx % 10 == 6:
                     if self.lunch <= 55:
-                        self.image = pg.transform.smoothscale(self.image_ship, (self.widthB, self.heightB))
-                        self.rect = self.image.get_rect(center = self.rect.center)
-                        self.widthB += 2.5
+                        self.image_big = pg.transform.smoothscale(self.image_ship['Front'][self.active_ship], (self.widthB, self.heightB))
+                        self.rect_big = self.image_big.get_rect(center = self.rect.center)
+                        self.widthB += 4
                         self.heightB += 1
                     self.lunch += 1
-            elif self.rect.centerx >= self.screen.get_width()//2:
+                    self.image = self.image_big
+                    self.rect = self.rect_big
+                    if self.lunch >= 55 and self.rect.centerx < self.screen.get_width() // 2:
+                        self.image = self.image_ship['Front'][self.active_ship]
+            if self.rect.centerx >= self.screen.get_width()//2:
                 self.ship_status = ShipStatus.deploy
 
         #Se coloca en posicion para empezar el juego
         elif self.ship_status == ShipStatus.deploy:
+            self.image = self.image_ship['Front'][self.active_ship]
             self.rect.centerx -= 3
-            if self.rect.centerx <= 80:
+            if self.rect.centerx <= 95:
                 self.ship_status = ShipStatus.travel   
 
         #Cuando la nave explota
@@ -229,7 +255,7 @@ class Ship(pg.sprite.Sprite):
         self.ship_status = ShipStatus.lunch
         self.speedy = self.ini_speedy
         self.arrive_speed = 2
-        self.image = self.image_ship
+        self.image = self.image_ship['Front'][self.active_ship]
         self.rect = self.rect_image
         self.rect.centery = self.cent_y
         self.angle = 0
