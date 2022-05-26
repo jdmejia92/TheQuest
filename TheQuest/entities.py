@@ -244,7 +244,7 @@ class Ship(pg.sprite.Sprite):
         elif self.ship_status == ShipStatus.deploy:
             self.image = self.image_ship['Front'][self.active_ship]
             self.rect.centerx -= 3
-            if self.rect.centerx <= 95:
+            if self.rect.centerx <= 120:
                 self.ship_status = ShipStatus.travel   
 
         #Cuando la nave explota

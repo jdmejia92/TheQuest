@@ -28,6 +28,8 @@ pip install -r requirements.txt
 
 6. Ejecuta el fichero **Main.py**.
 
+7. Puedes iniciar el juego con una base de datos limpia borrando el archivo **Records.db**, que se encuentra en la carpeta *data*
+
 ***
 
 ### Mediante la función Git Clone
