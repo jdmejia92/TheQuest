@@ -409,7 +409,6 @@ class Play(Scene):
                     if music == True:
                         self.explosion_ship.play()
                 self.count += 1
-                print(self.count)
                 if self.count >= 6000:
                     self.ship.ship_status = ShipStatus.destroy
 
