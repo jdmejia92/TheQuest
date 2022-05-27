@@ -15,41 +15,43 @@ Y con la librería:
 ### Mediante un archivo ZIP
 
 
-1. Descarga el archivo ZIP desde el repositorio, con el botón verde **Code** 
+1. Descarga el archivo ZIP desde el repositorio, con el botón verde **Code**. 
 
 2. Descomprímelo y guárdalo en una carpeta en el escritorio.
 
 3. Abre el proyecto con tu IDE preferido _(VSCode, VIM, etc.)_.
 4. Instala lo necesario para ejecutar el juego desde el fichero **requirements.txt** con la funsion [pip](https://pip.pypa.io/en/stable/).
-```cmd
+```powershell
 pip install -r requirements.txt
 ```
 5. Una vez instalada la librería **pygame**.
 
 6. Ejecuta el fichero **Main.py**.
 
-7. Puedes iniciar el juego con una base de datos limpia borrando el archivo **Records.db**, que se encuentra en la carpeta *data*
+7. Puedes iniciar el juego con una base de datos limpia borrando el archivo **Records.db**, que se encuentra en la carpeta *data*.
 
 ***
 
 ### Mediante la función Git Clone
 
 
-1. Copia el **URL** desde la sección **HTTPS** 
+1. Copia el **URL** desde la sección **HTTPS**.
 
-2. Ingresa a tu IDE preferido _(VSCode, VIM, etc.)
+2. Ingresa a tu IDE preferido _(VSCode, VIM, etc.)_.
 
-3. Abre la consola y ejecuta la función [git clone](https://support.atlassian.com/bitbucket-cloud/docs/clone-a-git-repository/) 
-```cmd
+3. Abre la consola y ejecuta la función [git clone](https://support.atlassian.com/bitbucket-cloud/docs/clone-a-git-repository/).
+```powershell
 git clone "URL"
 ```
 4. Instala lo necesario para ejecutar el juego desde el fichero **requirements.txt** con la función [pip](https://pip.pypa.io/en/stable/).
-```cmd
+```powershell
 pip install -r requirements.txt
 ```
 5.  Una vez instalada la librería **pygame**.
 
 6. Ejecuta el fichero **Main.py**.
+
+7. Puedes iniciar el juego con una base de datos limpia borrando el archivo **Records.db**, que se encuentra en la carpeta *data*.
 
 ***
 ***
@@ -61,7 +63,8 @@ Para mover la nave a través de los niveles:
 - Flecha hacia abajo **DOWN**, para desplazarse hacia abajo.
 - Para acelerar la velocidad de la nave debes presionar la tecla **Shift Izquierdo** en conjunto con la flecha de la dirección en la que deseas desplazarte.
 - Para acelerar la velocidad de los meteoros debes presionar la tecla **Shift Derecho**.
-- Para poner pausa o reanudar la musica presiona la tecla **M**
+- Para poner pausa o reanudar la musica presiona la tecla **1**.
+- Para visualizar los controles al inicio del juego y durante el juego, presiona la tecla **2**.
 ***
 ***
 ## Las reglas del juego
@@ -75,13 +78,13 @@ Para mover la nave a través de los niveles:
 ***
 ***
 
-Sin más que agregar
+Sin más que agregar.
 
-Disfruta el juego
+Disfruta el juego.
 
-Cualquier observación o mejora es bienvenida
+Cualquier observación o mejora es bienvenida.
 ***
 ***
-Imagen del fuego de la nave: Image by rawpixel.com
+Imagen del fuego de la nave: Image by rawpixel.com.
 
 &copy; Juan Daniel Mejia Hoyos 2022
