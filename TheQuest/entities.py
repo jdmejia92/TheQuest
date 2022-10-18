@@ -1,4 +1,3 @@
-from turtle import Screen
 import pygame as pg
 from TheQuest import FPS
 from enum import Enum
